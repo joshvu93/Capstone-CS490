@@ -133,7 +133,7 @@ class MainWindow(QMainWindow):
             alignment=Qt.AlignmentFlag.AlignTop
         )
 
-
+    # Function to register parameters
     def register_parameters(self):
         self.fps = self.fps_input.text()
         self.latcal = self.latcal_input.text()
@@ -143,6 +143,7 @@ class MainWindow(QMainWindow):
         self.poly3 = self.poly3_input.text()
         self.td = self.td_input.text()
 
+        # Console to confirm parameters have been registered
         print("Parameters registered:")
         print(f"FPS: {self.fps}")
         print(f"Latcal: {self.latcal}")
