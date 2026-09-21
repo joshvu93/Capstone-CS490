@@ -1,0 +1,833 @@
+# SET DIRECTORY 
+
+setwd("C:/Users/dsustaita/OneDrive - California State University San Marcos/Attachments/SmhmPerfProjFiles/MouseSwimming/CapstoneProject/mumu7091")
+
+# LOAD DATASETS
+
+latdata <-read.csv("mumu7091_latSwim1.1_2025Aug14.csv", header=TRUE)
+file <- "mumu7091_latSwim1.1_2025Aug14.csv"
+latdata <- read.csv(file, header=TRUE)
+name <- tools::file_path_sans_ext(basename(file))
+dorsdata<-read.csv("mumu7091_dorSwim1.1_2025Aug14.csv", header=TRUE)
+
+# BUILD GUI
+
+library(tcltk)
+# 1. Initialize the window
+tt <- tktoplevel()
+tkwm.title(tt, "Parameter Settings")
+tkwm.geometry(tt, "450x500") # Set a default size
+# --- SCROLLBAR IMPLEMENTATION ---
+main_frame <- tkframe(tt)
+tkpack(main_frame, fill = "both", expand = TRUE)
+canvas <- tkcanvas(main_frame, highlightthickness = 0)
+scr <- tkscrollbar(main_frame, repeatinterval = 5, command = function(...) tkyview(canvas, ...))
+tkconfigure(canvas, yscrollcommand = function(...) tkset(scr, ...))
+tkpack(scr, side = "right", fill = "y")
+tkpack(canvas, side = "left", fill = "both", expand = TRUE)
+# Internal frame (Child of canvas)
+content_frame <- tkframe(canvas)
+tkcreate(canvas, "window", 0, 0, anchor = "nw", window = content_frame)
+# Auto-update scrollregion
+tkbind(content_frame, "<Configure>", function() {
+    bbox <- tclvalue(tkbbox(canvas, "all"))
+    tkconfigure(canvas, scrollregion = bbox)
+})
+# Mouse wheel support
+tkbind(tt, "<MouseWheel>", function(D) {
+    number <- as.integer(ifelse(as.numeric(D) > 0, -1, 1))
+    tkyview(canvas, "scroll", number, "units")
+})
+# 2. Define multiple Tcl variables (stored as characters initially)
+var1_tcl <- tclVar("") # Your requested initial value
+var2_tcl <- tclVar("")
+var3_tcl <- tclVar("")
+var4_tcl <- tclVar("")
+var5_tcl <- tclVar("")
+var6_tcl <- tclVar("")
+var7_tcl <- tclVar("")
+# 3. Layout the inputs using tkgrid (Row/Column format)
+# Header
+tkgrid(tklabel(content_frame, text = "Enter Parameters Below"), columnspan = 2, pady = 10)
+# Input 1: fps
+tkgrid(tklabel(content_frame, text = "fps:"), pady = 5, padx = 5)
+tkgrid(tkentry(content_frame, textvariable = var1_tcl), row = 1, column = 1)
+# Input 2: latcal
+tkgrid(tklabel(content_frame, text = "latcal (m/pix):"), pady = 5, padx = 5)
+tkgrid(tkentry(content_frame, textvariable = var2_tcl), row = 2, column = 1)
+# Input 3: dorscal
+tkgrid(tklabel(content_frame, text = "dorscal (m/pix):"), pady = 5, padx = 5)
+tkgrid(tkentry(content_frame, textvariable = var3_tcl), row = 3, column = 1)
+# Input 4: poly1
+tkgrid(tklabel(content_frame, text = "poly1:"), pady = 5, padx = 5)
+tkgrid(tkentry(content_frame, textvariable = var4_tcl), row = 4, column = 1)
+# Input 5: poly2
+tkgrid(tklabel(content_frame, text = "poly2:"), pady = 5, padx = 5)
+tkgrid(tkentry(content_frame, textvariable = var5_tcl), row = 5, column = 1)
+# Input 6: poly3
+tkgrid(tklabel(content_frame, text = "poly3:"), pady = 5, padx = 5)
+tkgrid(tkentry(content_frame, textvariable = var6_tcl), row = 6, column = 1)
+# Input 7: td
+tkgrid(tklabel(content_frame, text = "td (m):"), pady = 5, padx = 5)
+tkgrid(tkentry(content_frame, textvariable = var7_tcl), row = 7, column = 1)
+# 4. Submission function with numeric conversion
+on_submit <- function() {
+  # Convert to numeric values for R processing
+  fps <<- as.numeric(tclvalue(var1_tcl))
+  latcal <<- as.numeric(tclvalue(var2_tcl))
+  dorscal <<- as.numeric(tclvalue(var3_tcl))
+  poly1 <<- as.numeric(tclvalue(var4_tcl))
+  poly2 <<- as.numeric(tclvalue(var5_tcl))
+  poly3 <<- as.numeric(tclvalue(var6_tcl))
+  td <<- as.numeric(tclvalue(var7_tcl))
+   }
+# 5. Add Submit button and pause execution until closed
+submit_btn <- tkbutton(content_frame, text = "Register Parameters", command = on_submit)
+tkgrid(submit_btn, columnspan = 2, pady = 20)
+Go
+
+# ENTER THESE PARAMETERS into GUI that are SPECIFIC TO mouse ID number "mumu7091":
+
+fps = 250
+latcal (m/pix) = 0.00026895
+dorscal (m/pixel) = 0.00027257
+poly1 = 4
+poly2 = 3
+poly3 = 2
+td(m) = 0.00225
+
+# IDENTIFY/NAME VARIABLES
+
+framed<-as.numeric(dorsdata[3:nrow(dorsdata), 1])
+tailtipy<-as.numeric(dorsdata[3:nrow(dorsdata), 45])
+tailbasy<-as.numeric(dorsdata[3:nrow(dorsdata), 21])
+snoutx<-as.numeric(dorsdata[3:nrow(dorsdata), 2])
+snouty<-as.numeric(dorsdata[3:nrow(dorsdata), 3])
+eyex<-as.numeric(dorsdata[3:nrow(dorsdata), 5])
+eyey<-as.numeric(dorsdata[3:nrow(dorsdata), 6])
+framel<-as.numeric(latdata[3:nrow(latdata), 1])
+mtpy<-as.numeric(latdata[3:nrow(latdata), 39 ])
+mtpx<-as.numeric(latdata[3:nrow(latdata), 38 ])
+anky<-as.numeric(latdata[3:nrow(latdata), 36 ])
+ankx<-as.numeric(latdata[3:nrow(latdata), 35 ])
+eyelatx<-as.numeric(latdata[3:nrow(latdata), 2 ])
+eyelaty<-as.numeric(latdata[3:nrow(latdata), 3 ])
+snoutlatx<-as.numeric(latdata[3:nrow(latdata), 5 ])
+snoutlaty<-as.numeric(latdata[3:nrow(latdata), 6 ])
+timed<-framed*(1/fps) # Create time variable based on frame rate
+timel<-framel*(1/fps) # Create time variable based on frame rate
+
+# FILTER & CROP DATA
+
+# Tail tip y
+
+y_range <- range(timed[!is.na(tailtipy)], na.rm = TRUE) # Plot with restricted x-axis
+plot(timed, tailtipy, xlim = y_range)
+par(xpd = TRUE)
+
+ymin_maxtt <-identify(timed, tailtipy, labels = tailtipy) # Interactively select points of interest on plot to return max & min signal Y-axis values, RIGHT CLICK-->stop
+
+ymin_maxtt <- sort(tailtipy[ymin_maxtt])
+ymintt <-ymin_maxtt[1]-10  # Registered values OR enter values drawn on plot manually into GUI (var4)
+ymaxtt <-ymin_maxtt[2]+10  # Registered values OR enter values drawn on plot manually into GUI (var5)
+
+tmin_maxtt <-identify(timed, tailtipy, labels = timed) # Interactively select points of interest on plot to return max & min signal Y-axis values, RIGHT CLICK-->stop
+
+tmin_maxtt <- sort(timed[tmin_maxtt])
+tmintt <-tmin_maxtt[1]  # Registered values OR enter values drawn on plot manually into GUI (var6)
+tmaxtt <-tmin_maxtt[2]  # Registered values OR enter values drawn on plot manually into GUI (var7)
+
+# Run this batch after applying parameters 
+
+filtdorsdata1 <- dorsdata[tailtipy <= ymaxtt & tailtipy > ymintt & timed > tmintt & timed < tmaxtt, ] #use Y-axis and X-axis values from above to set thresholds for filtering and cropping data
+tailtipyf<-as.numeric(filtdorsdata1[3:nrow(filtdorsdata1), 45])
+tailtipyf[tailtipyf < ymintt | tailtipyf > ymaxtt] <- NA # Replaces values outside with NA
+tailtipxf<-as.numeric(filtdorsdata1[3:nrow(filtdorsdata1), 44])
+library(zoo) # Rebuild filtered variables:
+framedf1<-as.numeric(filtdorsdata1[3:nrow(filtdorsdata1), 1])
+timedf1<-framedf1*(1/fps) # Rebuild time variable for filtered data
+timedf1 <- na.approx(timedf1)
+par(mfrow = c(1, 2))
+plot(timedf1, tailtipyf, type = "b") #replot data to check filtering & cropping success
+plot(timedf1, tailtipxf, type = "b") #replot data 
+
+## REPLACE BAD POINTS WITH 'NA' ##
+
+plot(tailtipyf, type = "b")
+removetty <-identify(tailtipyf) # Interactively select points on plot t replace with 'NA', RIGHT CLICK-->stop
+tailtipyf[removetty] <- NA
+plot(tailtipyf, type = "b") # REPEAT previous step as necessary
+
+plot(tailtipxf)
+removettx <-identify(tailtipxf) # Interactively select points on plot t replace with 'NA', RIGHT CLICK-->stop
+tailtipxf[removettx] <- NA
+plot(tailtipxf) # REPEAT previous step as necessary
+
+##
+
+# Tail base y
+y_range <- range(timed[!is.na(tailbasy)], na.rm = TRUE) # Plot with restricted x-axis
+plot(timed, tailbasy, xlim = y_range)
+par(xpd = TRUE)
+ymin_maxtb <-identify(timed, tailbasy, labels = tailbasy) # Interactively select points of interest on plot to return max & min signal Y-axis values, RIGHT CLICK-->stop
+
+ymin_maxtb <- sort(tailbasy[ymin_maxtb])
+ymintb <-ymin_maxtb[1]-10 
+ymaxtb <-ymin_maxtb[2]+10 
+
+tmin_maxtb <-identify(timed, tailbasy, labels = timed) # Interactively select points of interest on plot to return max & min signal Y-axis values, RIGHT CLICK-->stop
+
+tmin_maxtb <- sort(timed[tmin_maxtb])
+tmintb <-tmin_maxtb[1] 
+tmaxtb <-tmin_maxtb[2] 
+
+# Run this batch after applying parameters
+
+filtdorsdata2 <- dorsdata[tailbasy <= ymaxtb & tailbasy >= ymintb & timed >= tmintb & timed <= tmaxtb, ] #use Y-axis and X-axis values from above to set thresholds for filtering and cropping data
+tailbasyf<-as.numeric(filtdorsdata2[3:nrow(filtdorsdata2), 21])
+tailbasyf[tailbasyf < ymintb | tailbasyf > ymaxtb] <- NA # Replaces values outside with NA
+framedf2<-as.numeric(filtdorsdata2[3:nrow(filtdorsdata2), 1]) # Rebuild filtered variables:
+timedf2<-framedf2*(1/fps) # Rebuild time variable for filtered data
+timedf2 <- na.approx(timedf2)
+plot(timedf2, tailbasyf, type = "b") #replot data to check filtering & cropping success
+
+## REPLACE BAD POINTS WITH 'NA' ##
+
+plot(tailbasyf)
+removetby <-identify(tailbasyf) # Interactively select points on plot t replace with 'NA', RIGHT CLICK-->stop
+tailbasyf[removetby] <- NA
+plot(tailbasyf) # REPEAT previous step as necessary
+
+##
+
+# Dorsal Snout and Eye x & y
+
+x_range <- range(timed[!is.na(snoutx)], na.rm = TRUE) # Plot with restricted x-axis
+plot(timed, snoutx, xlim = x_range)
+par(xpd = TRUE)
+xmin_maxst <-identify(timed, snoutx, labels = snoutx) # Interactively select points of interest on plot to return max & min signal Y-axis values, RIGHT CLICK-->stop
+
+xmin_maxst <- sort(snoutx[xmin_maxst])
+xminst <-xmin_maxst[1] 
+xmaxst <-xmin_maxst[2] 
+
+y_range <- range(timed[!is.na(snouty)], na.rm = TRUE) # Plot with restricted x-axis
+plot(timed, snouty, xlim = y_range)
+par(xpd = TRUE)
+ymin_maxst <-identify(timed, snouty, labels = snouty) # Interactively select points of interest on plot to return max & min signal Y-axis values, RIGHT CLICK-->stop
+
+ymin_maxst <- sort(snouty[ymin_maxst])
+yminst <-ymin_maxst[1]-10 
+ymaxst <-ymin_maxst[2]+10
+
+tmin_maxst <-identify(timed, snouty, labels = timed) # Interactively select points of interest on plot to return max & min signal Y-axis values, RIGHT CLICK-->stop
+
+tmin_maxst <- sort(timed[tmin_maxst])
+tminst <-tmin_maxst[1] 
+tmaxst <-tmin_maxst[2] 
+
+# Run this batch after applying parameters
+
+filtdorsdata3 <- dorsdata[snoutx <= xmaxst & snoutx >= xminst & timed >= tminst & timed <= tmaxst, ] #use Y-axis and X-axis values from above to set thresholds for filtering and cropping data
+snoutxf<-as.numeric(filtdorsdata3[3:nrow(filtdorsdata3), 2])
+snoutxf[snoutxf < xminst | snoutxf > xmaxst] <- NA # Snout tip x coordinate
+snoutyf<-as.numeric(filtdorsdata3[3:nrow(filtdorsdata3), 3])
+snoutyf[snoutyf < yminst | snoutyf > ymaxst] <- NA # Snout tip y coordinate
+par(mfrow = c(1, 2))
+plot(snoutxf)
+plot(snoutyf)
+
+## REPLACE BAD POINTS WITH 'NA' ##
+
+plot(snoutxf)
+removestx <-identify(snoutxf) # Interactively select points on plot t replace with 'NA', RIGHT CLICK-->stop
+snoutxf[removestx] <- NA
+plot(snoutxf) # REPEAT previous step as necessary
+
+plot(snoutyf)
+removesty <-identify(snoutyf) # Interactively select points on plot t replace with 'NA', RIGHT CLICK-->stop
+snoutyf[removesty] <- NA
+plot(snoutyf) # REPEAT previous step as necessary
+
+##
+
+plot(timed, eyex)
+par(xpd = TRUE)
+xmin_maxey <-identify(timed, eyex, labels = eyex) # Interactively select points of interest on plot to return max & min signal Y-axis values, RIGHT CLICK-->stop
+
+xmin_maxey <- sort(eyex[xmin_maxey])
+xminey <-xmin_maxey[1] 
+xmaxey <-xmin_maxey[2] 
+
+plot(timed, eyey)
+par(xpd = TRUE)
+ymin_maxey <-identify(timed, eyey, labels = eyey) # Interactively select points of interest on plot to return max & min signal Y-axis values, RIGHT CLICK-->stop
+
+ymin_maxey <- sort(eyey[ymin_maxey])
+yminey <-ymin_maxey[1]-10 
+ymaxey <-ymin_maxey[2]+10 
+
+# Run this batch after applying parameters
+
+eyexf<-as.numeric(filtdorsdata3[3:nrow(filtdorsdata3), 5])
+eyexf[eyexf < xminey | eyexf > xmaxey] <- NA # Eye x coordinate
+eyeyf<-as.numeric(filtdorsdata3[3:nrow(filtdorsdata3), 6])
+eyeyf <- replace(eyeyf, eyeyf < yminey | eyeyf > ymaxey, NA)
+framedf3<-as.numeric(filtdorsdata3[3:nrow(filtdorsdata3), 1]) # Rebuild filtered variables:
+timedf3<-framedf3*(1/fps) # Rebuild time variable for filtered data
+timedf3 <- na.approx(timedf3)
+par(mfrow = c(1, 2))
+plot(timedf3, eyexf, type = "b") # To check if correct
+plot(timedf3, eyeyf, type = "b") # To check if correct
+
+## REPLACE BAD POINTS WITH 'NA' ##
+
+plot(eyeyf)
+removeey <-identify(eyeyf) # Interactively select points on plot t replace with 'NA', RIGHT CLICK-->stop
+eyeyf[removeey] <- NA
+plot(eyeyf) # REPEAT previous step as necessary
+
+plot(eyexf)
+removeex <-identify(eyexf) # Interactively select points on plot t replace with 'NA', RIGHT CLICK-->stop
+eyexf[removeex] <- NA
+plot(eyexf) # REPEAT previous step as necessary
+
+##
+
+# Mtp and Ankle y & x
+
+y_range <- range(timel[!is.na(mtpy)], na.rm = TRUE) # Plot with restricted x-axis
+plot(timel, mtpy, xlim = y_range)
+par(xpd = TRUE)
+ymin_maxmtp <-identify(timel, mtpy, labels = mtpy) # Interactively select points of interest on plot to return max & min signal Y-axis values, RIGHT CLICK-->stop
+
+ymin_maxmtp <- sort(mtpy[ymin_maxmtp])
+yminmp <-ymin_maxmtp[1]-10 
+ymaxmp <-ymin_maxmtp[2]+10 
+
+tmin_maxmtp <-identify(timel, mtpy, labels = timel) # Interactively select points of interest on plot to return max & min signal Y-axis values, RIGHT CLICK-->stop
+
+tmin_maxmtp <- sort(timel[tmin_maxmtp])
+tminmp <-tmin_maxmtp[1] 
+tmaxmp <-tmin_maxmtp[2]
+
+x_range <- range(timel[!is.na(mtpx)], na.rm = TRUE) # Plot with restricted x-axis
+plot(timel, mtpx, xlim = x_range)
+par(xpd = TRUE)
+xmin_maxmtp <-identify(timel, mtpx, labels = mtpx) # Interactively select points of interest on plot to return max & min signal Y-axis values, RIGHT CLICK-->stop
+
+xmin_maxmtp <- sort(mtpx[xmin_maxmtp])
+xminmp <-xmin_maxmtp[1]
+xmaxmp <-xmin_maxmtp[2] 
+
+# Run this batch after applying parameters
+
+filtlatdata1 <- latdata[mtpy <= ymaxmp & mtpy >= yminmp & timel >= tminmp & timel <= tmaxmp, ] #use Y-axis and X-axis values from above to set thresholds for filtering and cropping data
+mtpyf<-as.numeric(filtlatdata1[3:nrow(filtlatdata1), 39])
+mtpyf[mtpyf < yminmp | mtpyf > ymaxmp] <- NA # Replaces values outside with NA
+mtpxf<-as.numeric(filtlatdata1[3:nrow(filtlatdata1), 38])
+mtpxf[mtpxf < xminmp | mtpxf > xmaxmp] <- NA # Replaces values outside with NA
+par(mfrow = c(1, 2))
+plot(mtpyf, type = "b")
+plot(mtpxf, type = "b")
+
+## REPLACE BAD POINTS WITH 'NA' ##
+
+plot(mtpxf)
+removempx <-identify(mtpxf) # Interactively select points on plot t replace with 'NA', RIGHT CLICK-->stop
+mtpxf[removempx] <- NA
+plot(mtpxf) # REPEAT previous step as necessary
+
+plot(mtpyf, type = "b")
+removempy <-identify(mtpyf) # Interactively select points on plot t replace with 'NA', RIGHT CLICK-->stop
+mtpyf[removempy] <- NA
+plot(mtpyf, type = "b") # REPEAT previous step as necessary
+
+##
+
+plot(timel, anky)
+ymin_maxank <-identify(timel, anky, labels = anky) # Interactively select points of interest on plot to return max & min signal Y-axis values, RIGHT CLICK-->stop
+
+ymin_maxank <- sort(anky[ymin_maxank])
+yminank <-ymin_maxank[1]-10
+ymaxank <-ymin_maxank[2]+10 
+
+plot(timel, ankx)
+xmin_maxank <-identify(timel, ankx, labels = ankx) # Interactively select points of interest on plot to return max & min signal Y-axis values, RIGHT CLICK-->stop
+
+xmin_maxank <- sort(ankx[xmin_maxank])
+xminank <-xmin_maxank[1]
+xmaxank <-xmin_maxank[2] 
+
+# Run this batch after applying parameters
+
+library(zoo)
+ankxf<-as.numeric(filtlatdata1[3:nrow(filtlatdata1), 35])
+# Replaces values outside with NA
+ankxf[ankxf < xminank | ankxf > xmaxank] <- NA
+ankyf<-as.numeric(filtlatdata1[3:nrow(filtlatdata1), 36])
+# Replaces values outside with NA
+ankyf[ankyf < yminank | ankyf > ymaxank] <- NA
+framelf4<-as.numeric(filtlatdata1[3:nrow(filtlatdata1), 1]) # Rebuild filtered variables:
+timelf4<-framelf4*(1/fps) # Rebuild time variable for filtered data
+timelf4 <- na.approx(timelf4, rule =2)
+par(mfrow = c(1, 2))
+plot(timelf4, ankyf, type = "b") #replot data to check filtering & cropping success
+plot(timelf4, ankxf, type = "b") 
+
+## REPLACE BAD POINTS WITH 'NA' ##
+
+plot(ankyf)
+removeanky <-identify(ankyf) # Interactively select points on plot t replace with 'NA', RIGHT CLICK-->stop
+ankyf[removeanky] <- NA
+plot(ankyf) # REPEAT previous step as necessary
+
+plot(ankxf)
+removeankx <-identify(ankxf) # Interactively select points on plot t replace with 'NA', RIGHT CLICK-->stop
+ankxf[removeankx] <- NA
+plot(ankxf) # REPEAT previous step as necessary
+
+##
+
+# Lateral Snout and Eye x & y
+
+x_range <- range(timel[!is.na(snoutlatx)], na.rm = TRUE) # Plot with restricted x-axis
+plot(timel, snoutlatx, xlim = x_range)
+par(xpd = TRUE)
+tmin_maxsnoutlat <-identify(timel, snoutlatx, labels = timel) # Interactively select points of interest on plot to return max & min signal Y-axis values, RIGHT CLICK-->stop
+
+tmin_maxsnoutlat <- sort(timel[tmin_maxsnoutlat])
+tminlatst <-tmin_maxsnoutlat[1] 
+tmaxlatst <-tmin_maxsnoutlat[2] 
+
+xmin_maxsnoutlat <-identify(timel, snoutlatx, labels = snoutlatx) # Interactively select points of interest on plot to return max & min signal Y-axis values, RIGHT CLICK-->stop
+
+xmin_maxsnoutlat <- sort(snoutlatx[xmin_maxsnoutlat])
+xminlatst <-xmin_maxsnoutlat[1] 
+xmaxlatst <-xmin_maxsnoutlat[2] 
+
+plot(timel, snoutlaty)
+par(xpd = TRUE)
+ymin_maxsnoutlat <-identify(timel, snoutlaty, labels = snoutlaty) # Interactively select points of interest on plot to return max & min signal Y-axis values, RIGHT CLICK-->stop
+
+ymin_maxsnoutlat <- sort(snoutlaty[ymin_maxsnoutlat])
+yminlatst <-ymin_maxsnoutlat[1]-10 
+ymaxlatst <-ymin_maxsnoutlat[2]+10 
+
+# Run this batch after applying parameters
+
+filtlatdata2 <- latdata[snoutlatx <= xmaxlatst & snoutlatx >= xminlatst & timel >= tminlatst & timel <= tmaxlatst, ] #use Y-axis and X-axis values from above to set thresholds for filtering and cropping data
+snoutlatxf<-as.numeric(filtlatdata2[3:nrow(filtlatdata2), 5])
+snoutlatxf[snoutlatxf < xminlatst | snoutlatxf > xmaxlatst] <- NA # Snout tip lateral x coordinate
+snoutlatyf<-as.numeric(filtlatdata2[3:nrow(filtlatdata2), 6])
+snoutlatyf[snoutlatyf < yminlatst | snoutlatyf > ymaxlatst] <- NA # Snout tip lateral y coordinate
+par(mfrow = c(1, 2))
+plot(snoutlatxf) # To check if correct
+plot(snoutlatyf) # To check if correct
+
+## REPLACE BAD POINTS WITH 'NA' ##
+
+plot(snoutlatxf)
+removestlatx <-identify(snoutlatxf) # Interactively select points on plot t replace with 'NA', RIGHT CLICK-->stop
+snoutlatxf[removestlatx] <- NA
+plot(snoutlatxf) # REPEAT previous step as necessary
+
+plot(snoutlatyf)
+removestlaty <-identify(snoutlatyf) # Interactively select points on plot t replace with 'NA', RIGHT CLICK-->stop
+snoutlatyf[removestlaty] <- NA
+plot(snoutlatyf) # REPEAT previous step as necessary
+
+##
+
+plot(timel, eyelatx)
+par(xpd = TRUE) # allows values to overlap edges of plot
+xmin_maxeyelat <-identify(timel, eyelatx, labels = eyelatx) # Interactively select points of interest on plot to return max & min signal Y-axis values, RIGHT CLICK-->stop
+
+xmin_maxeyelat <- sort(eyelatx[xmin_maxeyelat])
+xminlatey <-xmin_maxeyelat[1]
+xmaxlatey <-xmin_maxeyelat[2] 
+
+plot(timel, eyelaty)
+par(xpd = TRUE) # allows values to overlap edges of plot
+ymin_maxeyelat <-identify(timel, eyelaty, labels = eyelaty) # Interactively select points of interest on plot to return max & min signal Y-axis values, RIGHT CLICK-->stop
+
+ymin_maxeyelat <- sort(eyelaty[ymin_maxeyelat])
+yminlatey <-ymin_maxeyelat[1]-10 
+ymaxlatey <-ymin_maxeyelat[2]+10 
+
+# Run this batch after applying parameters
+
+eyelatxf<-as.numeric(filtlatdata2[3:nrow(filtlatdata2), 2])
+eyelatxf[eyelatxf < xminlatey | eyelatxf > xmaxlatey] <- NA # Eye lateral x coordinate
+eyelatyf<-as.numeric(filtlatdata2[3:nrow(filtlatdata2), 3])
+eyelatyf[eyelatyf < yminlatey | eyelatyf > ymaxlatey] <- NA # Eye lateral y coordinate
+framelf5<-as.numeric(filtlatdata2[3:nrow(filtlatdata2), 1]) # Rebuild filtered variables:
+timelf5<-framelf5*(1/fps) # Rebuild time variable for filtered data
+timelf5 <- na.approx(timelf5)
+par(mfrow = c(1, 2))
+plot(timelf5, eyelatxf) # To check if correct
+plot(timelf5, eyelatyf) # To check if correct
+
+## REPLACE BAD POINTS WITH 'NA' ##
+
+plot(eyelatyf)
+removeeylaty <-identify(eyelatyf) # Interactively select points on plot t replace with 'NA', RIGHT CLICK-->stop
+eyelatyf[removeeylaty] <- NA
+plot(eyelatyf) # REPEAT previous step as necessary
+
+plot(eyelatxf)
+removeeylatx <-identify(eyelatxf) # Interactively select points on plot t replace with 'NA', RIGHT CLICK-->stop
+eyelatxf[removeeylatx] <- NA
+plot(eyelatxf) # REPEAT previous step as necessary
+
+##
+
+# INTERPOLATE FILTERED DATA (SPLINE FITTING)
+
+library(zoo)
+
+tailtipyfs<-na.spline(tailtipyf) # Tail tip y smoothed and de-gapped
+plot(timedf1, tailtipyfs) # plot to check
+
+tailtipxfs<-na.spline(tailtipxf) # Tail tip x smoothed and de-gapped
+plot(timedf1, tailtipxfs)
+
+tailbasyfs<-na.spline(tailbasyf) # Tail base y smoothed and de-gapped
+plot(timedf2, tailbasyfs)
+
+snoutxfs<-na.spline(snoutxf) # Snout x smoothed and de-gapped
+plot(timedf3, snoutxfs)
+
+snoutyfs<-na.spline(snoutyf) # Snout y smoothed and de-gapped
+plot(timedf3, snoutyfs)
+
+eyeyfs <-na.approx(eyeyf, na.rm = FALSE)
+plot(timedf3, eyeyfs)
+
+eyelatyfs <-na.approx(eyelatyf, na.rm = FALSE)
+plot(timelf5, eyelatyfs)
+
+mtpyfs<-na.spline(mtpyf) # Mtp y smoothed and de-gapped
+plot(timelf4, mtpyfs, type = "b")
+
+mtpxfs<-na.approx(mtpxf, na.rm = FALSE)
+plot(timelf4, mtpxfs, type = "b")
+
+ankxfs<-na.spline(ankxf) # Ank x smoothed and de-gapped
+plot(timelf4, ankxfs, type = "b")
+OR
+ankxfs<-na.approx(ankxf, na.rm = FALSE) # Ank x smoothed and de-gapped
+plot(timelf4, ankxfs, type = "b")
+
+ankyfs<-na.spline(ankyf) # Ank y smoothed and de-gapped
+plot(timelf4, ankyfs, type = "b")
+
+# CONVERT TO METRIC UNITS & FLIP
+
+tailtipyfsm <--1*(tailtipyfs*dorscal) # convert to meters and flip to reflect video
+tailtipxfsm <-(tailtipxfs*dorscal) # convert to meters 
+tailbasyfsm <--1*(tailbasyfs*dorscal) # convert to meters and flip to reflect video 
+snoutyfsm <--1*(snoutyfs*dorscal) # convert to meters and flip to reflect video 
+snoutxfsm <-(snoutxfs*dorscal)  
+eyeyfsm <--1*(eyeyfs*dorscal)
+eyelatyfsm <-(eyelatyfs*latcal)
+mtpyfsm <--1*(mtpyfs*latcal) # convert to meters and flip to reflect video
+mtpxfsm <-(mtpxfs*latcal)
+ankxfsm <-(ankxfs*latcal)
+ankyfsm <--1*(ankyfs*latcal)
+
+# DETREND DATA
+
+# Enter polynomial order into GUI; poly1 = [polynomial order number] (e.g., 2 for quadratic fit) (Use 1 for no detrending) 
+
+# Run this batch after applying parameters from GUI 
+
+plot(timedf1, tailtipyfsm, type = "b")
+
+polyfit1 <- lm(tailtipyfsm ~ poly(timedf1, poly1)) # Fit a quadratic polynomial
+trend1 <- predict(polyfit1) # Get the fitted trend
+tailtipyfsmd <- tailtipyfsm - trend1
+plot(timedf1, tailtipyfsmd, type = "b")
+
+# Enter polynomial order into GUI; poly2 = [polynomial order number] (Use 1 for no detrending) 
+
+# Run this batch after applying parameters from GUI
+
+plot(timedf2, tailbasyfsm, type = "b")
+
+polyfit2 <- lm(tailbasyfsm ~ poly(timedf2, poly2))
+trend2 <- predict(polyfit2) # Get the fitted trend
+tailbasyfsmd <- tailbasyfsm - trend2
+plot(timedf2, tailbasyfsmd, type = "b")
+
+# Enter polynomial order into GUI; poly3 = [polynomial order number] (Use 1 for no detrending) 
+
+# Run this batch after applying parameters from GUI
+
+plot(timelf4, mtpyfsm, type = "b")
+
+polyfit3 <- lm(mtpyfsm ~ poly(timelf4, poly3))
+trend3 <- predict(polyfit3) # Get the fitted trend
+mtpyfsmd <- mtpyfsm - trend3
+plot(timelf4, mtpyfsmd, type = "b")
+
+# "_fsmcd" = 'filtered-smoothed-metric-centered-detrended'
+
+# STANDARDIZE (MEAN-CENTER)
+
+tailtipyfsmcd <-(tailtipyfsmd - mean(tailtipyfsmd)) 
+tailbasyfsmcd <-(tailbasyfsmd - mean(tailbasyfsmd)) 
+mtpyfsmcd <-(mtpyfsmd - mean(mtpyfsmd))
+ 
+"_fsmc" = 'filtered-smoothed-metric-centered'
+
+# SMOOTH DATA
+plot(timedf1, tailtipyfsmcd, type = "b")
+
+tailtipyfsmcds<-smooth.spline(tailtipyfsmcd) # To smooth
+tailtipyfsmcd<-tailtipyfsmcds$y
+plot(timedf1, tailtipyfsmcd, type = "b") 
+
+plot(timedf2, tailbasyfsmcd, type = "b")
+
+tailbasyfsmcds<-smooth.spline(tailbasyfsmcd) # To smooth
+tailbasyfsmcd<-tailbasyfsmcds$y
+plot(timedf2, tailbasyfsmcd, type = "b") 
+
+plot(timelf4, mtpyfsmcd, type = "b")
+
+mtpyfsmcds<-smooth.spline(mtpyfsmcd) # To smooth
+mtpyfsmcd<-mtpyfsmcds$y
+plot(timelf4, mtpyfsmcd, type = "b") 
+
+# CALCULATE TAILTIP FREQUENCY (Hz)
+
+# Run this batch after applying parameters from GUI
+library(pracma)
+peakstt <- findpeaks(tailtipyfsmcd, minpeakdistance = 20, minpeakheight = 0) # Returns peak Y-axis values and frame id number for major peaks; use 25 for 250 fps and 50 for 500 fps
+peakstt <- peakstt[order(peakstt[, 2]), ] # Rearranges order of frames
+numpeakstt <- nrow(peakstt)
+numwavestt <- numpeakstt-1
+start1 <- peakstt[1,2]*(1/fps)
+end1 <- peakstt[numpeakstt,2]*(1/fps)
+freqtt <- numwavestt/(end1-start1) # tail tip frequency
+
+# CALCULATE TAILTIP WAVELENGTH (m)
+
+peaksttx <-tailtipxfsm[peakstt[,2]] # Returns tailtip x value for frames that correspond to peak tailtip y values
+meanwavelentt <- mean(diff(peaksttx)) # Avg tail tip wavelength (m)
+
+# CALCULATE TAIL WAVE SPEED (m/s)
+
+wavespeedtt <- freqtt*meanwavelentt
+
+# CALCULATE SWIM VELOCITY (m/s)
+
+plot(timedf3, snoutxfsm)
+lm <- lm(snoutxfsm ~ timedf3)
+swimvel <- coef(lm)[["timedf3"]] # Returns slope of regression of snout tip displacement vs. time
+  
+# CALCULATE TAIL WAVE AMPLITUDE
+
+library(pracma)
+valltt <- findpeaks(tailtipyfsmcd*-1, minpeakdistance = 25) # Returns Y-axis valleys and frame id numbers
+vallttneg <-(-1*valltt[,1]) # restores proper direction of valleys
+vallttdf<-data.frame(vallttneg)
+library(dplyr)
+vallttdf <- vallttdf %>%
+slice(-1) # removes last row
+tailtipamp <- mean(peakstt[,1]-vallttdf$vallttneg)/2 # mean tail tip wave amplitude
+
+# CALCULATE TAIL BASE AMPLITUDE
+
+library(pracma)
+peakstb <- findpeaks(tailbasyfsmcd) # Returns peak Y-axis values and frame id numbers
+valltb <- findpeaks(tailbasyfsmcd*-1) # Returns Y-axis valleys and frame id numbers
+valltbneg <- -1*valltb[,1] # restores proper direction of valleys
+valltbdf<-data.frame(valltbneg)
+library(dplyr)
+valltbdf <- valltbdf %>%
+slice(-1)
+tailbaseamp <- mean(peakstb[,1]-valltbdf$valltbneg)/2 # mean tail base wave amplitude
+
+# TAIL TRAILING EDGE LATERAL VELOCITY (m/s) 
+
+pkpktimestt <- peakstt[,2]*(1/fps)
+meanpkpktt <- mean(diff(pkpktimestt))
+taillatvel<-((4*tailtipamp)/meanpkpktt) # tail trailing edge lateral velocity (m/sec) [4*amplitude/mean wave pk-pk time]
+
+# TAIL MEAN THRUST POWER
+
+relvel<-taillatvel*((wavespeedtt-swimvel)/wavespeedtt) # relative velocity of tail (m/sec) [velocity that actually affects fluid; w = W(V-U/V), where W = tail trailing edge lateral velocity, U = swimming velocity, V = backward velocity of propulsive wave] 
+
+# Enter tail diameter into GUI; td = [enter tail diameter from manifest] (e.g., 0.00205 m) 
+
+# Run this batch after applying parameters from GUI
+
+virtmass <- 1*1000*(td^2/4) # virtual mass per unit length (reflects mass of fluid accelerated by tail) (kg/m); [m = kTρ(dT2/4), where kT = 1.0, ρ = 1000 kg/m3, dT = max depth of tail (m)]
+meantailthrust <- (virtmass*relvel*swimvel*taillatvel)-(0.5*virtmass*(relvel^2)*swimvel) # mean thrust power of tail in Watts[PT = mw UW - ½mw2U]
+
+# MEAN PRECISION
+
+cam1prec <- sd(na.omit(latcal*(sqrt((snoutlatxf-eyelatxf)^2+(snoutlatyf-eyelatyf)^2)))) # Precision cam1 (cm; Standard deviation Snout-EyeDist_Cam1)
+cam2prec <- sd(na.omit(dorscal*(sqrt((snoutxf-eyexf)^2+(snoutyf-eyeyf)^2)))) # Precision cam1 (cm; Standard deviation Snout-EyeDist_Cam1)
+meanprec <- ((cam1prec + cam2prec)/2)*1000 # Precision averaged between cameras in mm
+
+# MTP FREQUENCY (Hz)
+
+library(pracma)
+vallsmp <- findpeaks(mtpyfsmcd*-1, minpeakdistance = 20, minpeakheight = 0) # Returns peak Y-axis values and frame id numbers; in this case based on the VALLEYS because they are more discernable
+vallsmp <- vallsmp[order(vallsmp[, 2]), ] # Rearranges order of frames
+numvallsmp <- nrow(vallsmp)
+numwavesmp <- numvallsmp-1
+start2 <- vallsmp[1,2]*(1/fps)
+end2 <- vallsmp[numvallsmp,2]*(1/fps)
+freqmp <- numwavesmp/(end2-start2) # Mtp frequency
+
+# HINDFOOT STROKE CYCLES
+
+library(pracma)
+peaksmtp <- findpeaks(mtpyfsmcd, minpeakdistance = 20, minpeakheight = 0) # Returns peak Y-axis values and frame id numbers at least X frames apart
+peaksmtp <- peaksmtp[order(peaksmtp[, 2]), ] # Rearranges order of frames
+vallmtp <- findpeaks(mtpyfsmcd*-1, minpeakdistance = 20, minpeakheight = 0, threshold = 0) # Returns Y-axis valleys and frame id numbers at least X frames apart
+vallmtp <- vallmtp[order(vallmtp[, 2]), ] # Rearranges order of frames
+vallmtpneg <- -1*vallmtp[,1] # restores proper direction of valleys
+
+mtpamp <- mean(peaksmtp[,1]-vallmtpneg)/2  # HF power phase wave amplitude (m) [average (peakY-troughY)/2]
+
+vallsmtpx <-mtpxfsm[vallmtp[,2]] # Returns mtp x values for frames that correspond to peak mtp y vertices
+meanwavelenmtp <- mean(diff(vallsmtpx)) # avg HF wavelength (m) [from corresponding cam1X values] 
+strokelen <- swimvel/freqmp
+
+pktime<-peaksmtp[, 2]*(1/fps)
+valtime<-peaksmtp[, 4]*(1/fps) # Column 4: Index of the peak's end (the right "valley" or end of the fall)
+pktime_crp <- pktime[1:length(valtime)]
+ppduration <-mean(valtime-pktime_crp) # Mean PP Duration (sec)
+pktime_crp_shifted <- c(pktime_crp[-1], NA)
+rpduration <- mean(na.omit(pktime_crp_shifted - valtime)) # Mean RP Duration (sec)
+pprpratio <- ppduration/rpduration # ratio of power phase to recovery phase duration
+
+hflength <-mean(na.omit((sqrt((mtpxfsm-ankxfsm)^2+(mtpyfsm-ankyfsm)^2)))) # Distance between mtp and ankle (m)
+hfangle <- atan2(mtpyfsm-ankyfsm, mtpxfsm-ankxfsm)
+
+hfangle # STOP here to check length of column
+
+# Manually crop length of hfangle and time at specified index
+hfangle <- hfangle[1:135]
+timelf4crp <- timelf4[1:135]
+plot(timelf4crp, hfangle)
+
+## IF NECESSARY ##
+library(signal)
+hfangle <- unwrap(hfangle) # phase unwrapping. This process removes the mathematical discontinuities (jumps between approximately \(\pi \) and \(-\pi \)) to create a smooth, continuous numerical sequence
+plot(hfangle)
+##
+
+# angle_deg <- angle_rad*(180/pi) # Convert to degrees
+
+hfangvel <- (diff(hfangle)/diff(timelf4crp)) # hindfoot angular velocity (rad/s)
+timelf4crp <- c(timelf4crp[-1]) # Create shortened time variable for plotting
+plot(timelf4crp, hfangvel)
+
+# TO CLEAN IF NECESSARY
+plot(hfangvel)
+removehfangvel <-identify(hfangvel) # Interactively select points on plot t replace with 'NA', RIGHT CLICK-->stop
+hfangvel[removehfangvel] <- NA
+plot(hfangvel)
+hfangvel <-na.approx(hfangvel, na.rm = FALSE)
+plot(timelf4crp, hfangvel)
+
+# IF NECESSARY Manually crop length of hfangvel and time at specified index
+hfangvel <- hfangvel[5:188]
+timelf4crp <- timelf4crp[5:188]
+plot(timelf4crp, hfangvel)
+
+hfangvels <- smooth.spline(timelf4crp, hfangvel) # Smooth angular velocity data
+plot(timelf4crp, hfangvels$y, type = "b")
+
+# OR USE THIS WHEN THERE ARE EXTREME ARTEFACTS
+hfangvels <- smooth.spline(timelf4crp, hfangvel, spar=0.4) # Smooth angular velocity data
+plot(timelf4crp, hfangvels$y, type = "b")
+
+mtpyfsmcd_crp <- mtpyfsmcd[1:length(timelf4crp)] # crop mtp to match hfangvel
+plot(timelf4crp, mtpyfsmcd_crp, type = "b")
+
+# Superimpose angular velocity & mtp position traces
+
+par(mar = c(5, 4, 4, 4) + 0.1) # Bottom, Left, Top, Right margins
+plot(timelf4crp, hfangvels$y, type = "l", col = "red", xlab = "time", ylab = "HF Angular Velocity", col.lab = "red", col.axis = "black", ylim = c(min(hfangvels$y), max(hfangvels$y)))
+par(new = TRUE) # Tells R to plot on the same graph area
+plot(timelf4crp, mtpyfsmcd_crp, type = "l", col = "blue",xlab = "", ylab = "", axes = FALSE,
+     ylim = c(min(mtpyfsmcd_crp), max(mtpyfsmcd_crp)))
+axis(4, col = "blue") # '4' specifies the right side
+mtext("MTP Position", side = 4, line = 3, col = "blue", col.axis = "blue", col.lab = "blue") # Add label for right axis
+
+# Hindfoot angular velocities are POSITIVE for RECOVERY phase because foot is moving forward and NEGATIVE for POWER phase bec foot is moving backwards 
+
+rpangvel <- findpeaks(hfangvels$y, minpeakdistance = 30) # peak recovery phase angular velocity 
+rpangvel <- rpangvel[order(rpangvel[, 2]), ] # Rearranges order of frames
+meanrpangvel <-mean(rpangvel[,1]) # Avg absolute value recovery phase ang vel (rad/s)
+ppangvel <- findpeaks(hfangvels$y*-1, minpeakdistance = 30) # peak power phase angular velocity 
+ppangvel <- ppangvel[order(ppangvel[, 2]), ] # Rearranges order of frames
+meanppangvel <-mean(ppangvel[,1]) # Avg absolute value power phase ang vel (rad/s)
+
+# SAVE OUT THE FOLLOWING:
+
+# Filtered data set
+
+filtvars <- list(mtpyfsmcd_crp = mtpyfsmcd_crp, hfangvels$y, timelf4crp = timelf4crp, timelf4 = timelf4, hfangvel = hfangvel, hfangle = hfangle, hflength = hflength, snoutxfsm = snoutxfsm, mtpyfsmcd = mtpyfsmcd, tailbasyfsmcd = tailbasyfsmcd, tailtipyfsmcd = tailtipyfsmcd, ankyfsm = ankyfsm, ankxfsm = ankxfsm, mtpxfsm = mtpxfsm, mtpyfsm = mtpyfsm, eyelatyfsm = eyelatyfsm, eyeyfsm = eyeyfsm, snoutxfsm = snoutxfsm, snoutyfsm = snoutyfsm, tailbasyfsm = tailbasyfsm, tailtipxfsm = tailtipxfsm, tailtipyfsm = tailtipyfsm, timelf5 = timelf5, eyelatyf = eyelatyf, eyelatxf = eyelatxf, snoutlatyf = snoutlatyf, snoutlatxf = snoutlatxf, ankxf = ankxf, ankyf = ankyf, mtpyf = mtpyf, mtpxf = mtpxf, eyexf = eyexf, eyeyf = eyeyf, tailbasyf = tailbasyf, tailtipyf = tailtipyf, tailtipxf = tailtipxf, timedf2 = timedf2, timedf3 = timedf3, timed = timed, timel = timel)
+max_ln <- max(lengths(filtvars))
+padded_list <- lapply(filtvars, `length<-`, max_ln)
+final_df <- as.data.frame(padded_list)
+suffix <- "_filtered"
+final_name <- paste0(name, suffix, ".csv") 
+write.csv(final_df, file = final_name)
+
+# VARIABLE LIST
+
+datatable <- stack(data.frame(name, freqtt, meanwavelentt, wavespeedtt, swimvel, tailtipamp, tailbaseamp, taillatvel, meantailthrust,meanprec, freqmp, mtpamp, hflength, meanwavelenmtp, strokelen, ppduration, rpduration, pprpratio, meanrpangvel, meanppangvel, fps, latcal, dorscal, td, poly1, poly2, poly3))
+# Switch column order$ relabel
+table <- datatable[, c("ind", "values")]
+colnames(table) <- c("Variable", "Value")
+table<- format(table, scientific = FALSE) # Final table of values
+
+# KINEMATIC PROFILE PLOT
+
+# Rescale time & make df's
+t0 <- max(timedf1[1], timedf2[1], timelf4[1]) # find max start time point
+timef1re = timedf1 - t0
+timef2re = timedf2 - t0
+timef4re = timelf4 - t0
+df1 <-data.frame(timef1re, tailtipyfsmcd)
+df2 <-data.frame(timef2re, tailbasyfsmcd)
+df4 <-data.frame(timef4re, mtpyfsmcd)
+end_point <- min(
+  max(df1$timef1re, na.rm = TRUE),
+  max(df4$timef4re, na.rm = TRUE),
+  max(df2$timef2re, na.rm = TRUE)
+)
+# Generate line plot
+library(ggplot2)
+library(ggh4x) 
+# Define named vectors to satisfy S7 strict validation
+color_values <- c(
+  "tailbasyfsmcd" = "black", 
+  "mtpyfsmcd"      = "blue", 
+  "tailtipyfsmcd" = "red"
+)
+color_labels <- c(
+  "mtpyfsmcd"      = "MTP", 
+  "tailbasyfsmcd"  = "Tail base", 
+  "tailtipyfsmcd"  = "Tail tip"
+)
+ggplot() + 
+  # Use ggh4x::geom_pointpath (lemon's version is deprecated as of late 2025)
+  geom_pointpath(data = df1, aes(x = timef1re, y = tailtipyfsmcd, color = "tailtipyfsmcd"), linewidth = 1.0) + 
+  geom_pointpath(data = df4, aes(x = timef4re, y = mtpyfsmcd, color = "mtpyfsmcd"), linewidth = 1.0) +
+  geom_pointpath(data = df2, aes(x = timef2re, y = tailbasyfsmcd, color = "tailbasyfsmcd"), linewidth = 1.0) + 
+  labs(x = "Time (s)", y = "Y-axis Position (m)", color = "Legend") + 
+  scale_color_manual(values = color_values, labels = color_labels) +
+scale_x_continuous(
+    limits = c(0, end_point),              # Ensures the axis starts at 0
+    expand = expansion(mult = c(0, 0.05)) # 0 padding on the left, 5% padding on the right
+  )
