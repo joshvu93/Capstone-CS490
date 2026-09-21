@@ -44,14 +44,9 @@ class MainWindow(QMainWindow):
         # Space around layout edges
         parameter_container.setContentsMargins(0, 0, 0, 0)
         parameter_container.setLayout(parameter_layout)
-      
-
 
         # Parameter Components
         parameter_title = QLabel("Enter Parameters")
-
-       
-        
 
         # FPS
         fps_label = QLabel("FPS:")
