@@ -213,6 +213,8 @@ class MainWindow(QMainWindow):
     # Test the first imported dataset
         variables = self.extract_variables(self.data[0])
 
+       # self.calculate_kinematics(variables)
+
         print("Standardized variables:")
         print(variables.keys())
 
@@ -562,7 +564,7 @@ class MainWindow(QMainWindow):
             np.diff(time)
         )
 
-    def calculate_kinematics(self, variables):
+    # def calculate_kinematics(self, variables):
 
         print("\nKINEMATIC RESULTS")
         print("------------------")
@@ -683,7 +685,8 @@ class MainWindow(QMainWindow):
         virtual_mass = self.calculate_virtual_mass(td)
 
         print(f"Virtual Mass: {virtual_mass}")
-        
+
+        return virtual_mass 
 
     # Tail Thrust Power
     # TODO:
