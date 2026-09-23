@@ -1,4 +1,6 @@
 # Imports
+import pandas as pd
+
 import numpy as np
 import sys
 
@@ -46,73 +48,98 @@ class MainWindow(QMainWindow):
         parameter_container.setContentsMargins(0, 0, 0, 0)
         parameter_container.setLayout(parameter_layout)
 
-        # Parameter Components
-        parameter_title = QLabel("Enter Parameters")
+        # Import CSV Button
+        self.import_button = QPushButton("Import CSV")
+
+        # Connect CSV button to import function
+        self.import_button.clicked.connect(self.import_csv)
 
         parameter_layout.addWidget(
-            parameter_title,
+            self.import_button,
             0, 0, 1, 2,
+            Qt.AlignmentFlag.AlignCenter 
+        )
+
+        # Space below Import button
+        parameter_layout.setRowMinimumHeight(0, 50)
+
+        # Parameter Components
+        parameter_title = QLabel("Enter Parameters")
+        parameter_layout.setRowMinimumHeight(1, 30)
+        parameter_layout.addWidget(
+            parameter_title,
+            1, 0, 1, 2,
             Qt.AlignmentFlag.AlignCenter
         )
 
-        # Import CSV button
-        # We will add this later
+        # Register Paramters Button
+        self.parameter_button = QPushButton("Register Parameters")
+
+        # Connect button to function
+        self.parameter_button.clicked.connect(self.register_parameters)
+
+        # Put Register button into parameter layout
+        parameter_layout.addWidget(
+            self.parameter_button,
+            9, 0, 1, 2,
+            Qt.AlignmentFlag.AlignCenter
+        )
 
         # FPS
         fps_label = QLabel("FPS:")
         self.fps_input = QLineEdit()
         self.fps_input.setPlaceholderText("Enter FPS value:")
 
-        parameter_layout.addWidget(fps_label, 1, 0)
-        parameter_layout.addWidget(self.fps_input, 1, 1)
+        parameter_layout.addWidget(fps_label, 2, 0)
+        parameter_layout.addWidget(self.fps_input, 2, 1)
 
         # Latcal
         latcal_label = QLabel("Latcal (m/pix):")
         self.latcal_input = QLineEdit()
         self.latcal_input.setPlaceholderText("Enter Latcal value:")
 
-        parameter_layout.addWidget(latcal_label, 2, 0)
-        parameter_layout.addWidget(self.latcal_input, 2, 1)
+        parameter_layout.addWidget(latcal_label, 3, 0)
+        parameter_layout.addWidget(self.latcal_input, 3, 1)
 
         # Dorscal
         dorscal_label = QLabel("Dorscal (m/pix):")
         self.dorscal_input = QLineEdit()
         self.dorscal_input.setPlaceholderText("Enter Dorscal value:")
 
-        parameter_layout.addWidget(dorscal_label, 3, 0)
-        parameter_layout.addWidget(self.dorscal_input, 3, 1)
+        parameter_layout.addWidget(dorscal_label, 4, 0)
+        parameter_layout.addWidget(self.dorscal_input, 4, 1)
 
         # Poly 1
         poly1_label = QLabel("Poly 1:")
         self.poly1_input = QLineEdit()
         self.poly1_input.setPlaceholderText("Enter Poly 1 value:")
 
-        parameter_layout.addWidget(poly1_label, 4, 0)
-        parameter_layout.addWidget(self.poly1_input, 4, 1)
+        parameter_layout.addWidget(poly1_label, 5, 0)
+        parameter_layout.addWidget(self.poly1_input, 5, 1)
 
         # Poly 2
         poly2_label = QLabel("Poly 2:")
         self.poly2_input = QLineEdit()
         self.poly2_input.setPlaceholderText("Enter Poly 2 value:")
 
-        parameter_layout.addWidget(poly2_label, 5, 0)
-        parameter_layout.addWidget(self.poly2_input, 5, 1)
+        parameter_layout.addWidget(poly2_label, 6, 0)
+        parameter_layout.addWidget(self.poly2_input, 6, 1)
 
         # Poly 3
         poly3_label = QLabel("Poly 3:")
         self.poly3_input = QLineEdit()
         self.poly3_input.setPlaceholderText("Enter Poly 3 value:")
 
-        parameter_layout.addWidget(poly3_label, 6, 0)
-        parameter_layout.addWidget(self.poly3_input, 6, 1)
+        parameter_layout.addWidget(poly3_label, 7, 0)
+        parameter_layout.addWidget(self.poly3_input, 7, 1)
 
         # TD
         td_label = QLabel("TD:")
         self.td_input = QLineEdit()
         self.td_input.setPlaceholderText("Enter TD value:")
 
-        parameter_layout.addWidget(td_label, 7, 0)
-        parameter_layout.addWidget(self.td_input, 7, 1)
+        parameter_layout.addWidget(td_label, 8, 0)
+        parameter_layout.addWidget(self.td_input, 8, 1)
 
         # Register Parameters Button
         self.parameter_button = QPushButton("Register Parameters")
@@ -123,7 +150,7 @@ class MainWindow(QMainWindow):
         # Add Register Parameters button to parameter layout
         parameter_layout.addWidget(
             self.parameter_button,
-            8, 0, 1, 2,
+            9, 0, 1, 2,
             Qt.AlignmentFlag.AlignCenter
         )
 
@@ -153,9 +180,41 @@ class MainWindow(QMainWindow):
         print(f"Poly 3: {self.poly3}")
         print(f"TD: {self.td}")
 
-# Formulas Kinematics Calculations
+# Import CSV 
+    def import_csv(self):
 
-# Kinematic Calculations
+    # Open file picker and allow multiple CSV files
+        file_paths, _ = QFileDialog.getOpenFileNames(
+        self,
+        "Select CSV Files",
+        "",
+        "CSV Files (*.csv)"
+    )
+
+    # Stop if no files were selected
+        if not file_paths:
+            return
+
+    # Store selected file paths
+        self.file_paths = file_paths
+
+    # Store loaded datasets
+        self.data = []
+
+    # Load each CSV file with Pandas
+        for file_path in self.file_paths:
+            dataset = pd.read_csv(file_path)
+            self.data.append(dataset)
+
+    # Test output
+        print(f"Loaded {len(self.data)} CSV file(s).")
+
+        for index, dataset in enumerate(self.data):
+            print(f"\nDataset {index + 1}:")
+            print(self.file_paths[index])
+            print(dataset.head())
+        
+# Formulas Kinematics Calculations
 
 # Convert frame number to time in seconds
 # Formula: time = frame / fps
