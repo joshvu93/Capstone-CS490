@@ -154,6 +154,19 @@ class MainWindow(QMainWindow):
             Qt.AlignmentFlag.AlignCenter
         )
 
+        # Set gap between resiger parameters and calculate kinematics button
+        parameter_layout.setRowMinimumHeight(0, 50)
+
+        # Calcualte Kinematics Button
+        self.calculate_button = QPushButton("Calculate Kinematics")
+        self.calculate_button.clicked.connect(self.calculate_kinematics)
+
+        # Add button to layout
+        parameter_layout.addWidget(
+            self.calculate_button,
+            10,0,1,2,
+            Qt.AlignmentFlag.AlignCenter
+        )
         # Put parameter container into main layout
         main_layout.addWidget(
             parameter_container,
@@ -241,7 +254,6 @@ class MainWindow(QMainWindow):
 
     # Coordinate was not found
         return None
-
 
 # Extract standardized variables for kinematics
     def extract_variables(self, dataset):
@@ -564,24 +576,30 @@ class MainWindow(QMainWindow):
             np.diff(time)
         )
 
-    # def calculate_kinematics(self, variables):
+    def calculate_kinematics(self, variables):
 
         print("\nKINEMATIC RESULTS")
         print("------------------")
 
+        test_time =self.calculate_time(250,250)
+        print(f"Time test: {test_time}")
+
+        test_mass = self.calculate_virtual_mass(0.00225)
+        print(f"Virtual mass test: {test_mass}")
+
     # Convert registered parameter text into numbers
-        fps = float(self.fps)
-        latcal = float(self.latcal)
-        dorscal = float(self.dorscal)
-        td = float(self.td)
+    #    fps = float(self.fps)
+    #    latcal = float(self.latcal)
+    #    dorscal = float(self.dorscal)
+    #    td = float(self.td)
 
 
     # Time
     # Can calculate now because we have frame + FPS
-        time = variables["frame"] / fps
+    #   time = variables["frame"] / fps
 
-        print("Time range:")
-        print(f"{time[0]} to {time[-1]} seconds")
+    #    print("Time range:")
+    #    print(f"{time[0]} to {time[-1]} seconds")
 
 
     # Swim Velocity
@@ -682,11 +700,11 @@ class MainWindow(QMainWindow):
 
     # Virtual Mass
     # Can calculate from registered tail diameter
-        virtual_mass = self.calculate_virtual_mass(td)
+    #    virtual_mass = self.calculate_virtual_mass(td)
 
-        print(f"Virtual Mass: {virtual_mass}")
+    #    print(f"Virtual Mass: {virtual_mass}")
 
-        return virtual_mass 
+    #    return virtual_mass 
 
     # Tail Thrust Power
     # TODO:
