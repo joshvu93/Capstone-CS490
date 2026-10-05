@@ -1,551 +1,248 @@
+# MiceLab
 
-# CS490 Capstone - MiceLab
+MiceLab is a desktop Python application for turning mouse swimming motion-tracking CSV files into cleaned coordinate data, diagnostic plots, and kinematic measurements. The interface is built with PySide6; Pandas and NumPy provide data handling and numerical calculations.
 
-MiceLab is a Python application for importing mouse movement CSV data and calculating kinematic measurements. The application uses a PySide6 graphical user interface, Pandas for CSV/data handling, and NumPy for numerical calculations.
+> **Development status:** the current branch contains a working GUI shell, multi-file CSV import, per-dataset variable selection, parameter capture, and a library of kinematic calculation functions. The full analysis workflow is not yet connected. Processing buttons, plots, exports, and final calculations are currently placeholders or test outputs.
 
-## 1. Recommended Folder Layout
+## Intended workflow
 
-Your project folder should look like this:
-
-```text
-Capstone-CS490/
-├── main.py
-├── README.md
-├── requirements.txt
-├── .gitignore
-├── data/
-│   ├── mumu7091_dorSwim1.1_2025Aug14.csv
-│   └── mumu7091_latSwim1.1_2025Aug14.csv
-└── .venv/
-```
-
-### Where do the CSV files go?
-
-Create a folder named:
+The application is being developed to match the project manager's workflow:
 
 ```text
-data
+1. Import dorsal and lateral CSV data
+2. Enter calibration specifications
+3. Select a dataset and variable
+4. Display raw data
+5. Filter data and remove invalid points
+6. Fill gaps with spline interpolation
+7. Convert units and detrend the signal
+8. Standardize and smooth the signal
+9. Calculate kinematics and plot processed data
+                         |
+                         +--> Export cleaned variables as CSV
+                         +--> Export a table of final kinematic values
 ```
 
-inside `Capstone-CS490`.
+The top-camera data supplies dorsal measurements such as tail-base movement. The side-camera data supplies lateral measurements, including the metatarsophalangeal joint (MTP/toe joint) and ankle used for hindlimb analysis. These views are complementary and must be processed with the appropriate calibration rather than treated as interchangeable files.
 
-Then put these two CSV files inside it:
+## Current implementation
+
+| Area | Current status |
+|---|---|
+| GUI and styling | Implemented as a scrollable six-section PySide6 interface |
+| Multi-file CSV import | Implemented for CSVs with a three-row DeepLabCut-style header |
+| Dataset and variable selectors | Implemented; each imported file is extracted independently |
+| Calibration entry | Values are captured and printed, but are not validated, converted to numbers, or applied |
+| Data processing | Basic helper functions exist; GUI actions and spline/detrending/smoothing logic are not implemented |
+| Plotting | Function stubs exist, but no graph widgets or plots are connected |
+| Kinematics | Formula functions exist; the GUI button currently runs only fixed time and virtual-mass tests |
+| Export | Buttons exist, but processed-data and results export are not implemented |
+| Automated tests | Not present |
+
+The latest refactor separated the original monolithic application into focused modules:
 
 ```text
-mumu7091_dorSwim1.1_2025Aug14.csv
-mumu7091_latSwim1.1_2025Aug14.csv
+main.py          Application entry point and stylesheet loading
+gui.py           Window state, event handlers, and workflow coordination
+layout.py        PySide6 widget and section construction
+data.py          CSV loading and standardized coordinate extraction
+processing.py    Cleaning and signal-processing helpers (partially implemented)
+kinematics.py    Tail, swimming, MTP, and hindfoot calculations
+plotting.py      Planned visualization API (currently stubs)
+styles.qss       GUI stylesheet
 ```
 
-You do **not** need to edit the CSV files.
+## Input data
 
-The application uses the **Import CSV** button to select the files. They do not have to be in a specific folder for the application to work, but keeping project data inside `data/` makes the repository easier for your team to organize.
+Two example files are included in `data/` and are also currently duplicated in the repository root:
 
-## 2. What These Two CSV Files Contain
+- `mumu7091_dorSwim1.1_2025Aug14.csv` — dorsal/top-camera view
+- `mumu7091_latSwim1.1_2025Aug14.csv` — lateral/side-camera view
 
-The two files are from the same mouse/trial but contain different camera views/body-point sets.
-
-### Dorsal CSV
-
-```text
-mumu7091_dorSwim1.1_2025Aug14.csv
-```
-
-This file contains 412 frames and 46 columns. Its tracked body parts include:
-
-- SnoutTip
-- TopEye
-- BottomEye
-- AntBodyMid
-- BodyMid
-- PostBodyMid
-- TailBase
-- ProxTail1
-- ProxTail2
-- ProxTail3
-- MidTail
-- DistTail1
-- DistTail2
-- DistTail3
-- TailTip
-
-### Lateral CSV
-
-```text
-mumu7091_latSwim1.1_2025Aug14.csv
-```
-
-This file contains 412 frames and 40 columns. Its tracked body parts include:
-
-- Eye
-- SnoutTip
-- TailBase
-- ProxTail1
-- ProxTail2
-- ProxTail3
-- MidTail
-- DistTail1
-- DistTail2
-- DistTail3
-- TailTip
-- Ankle
-- MTP
-
-Both files use a three-level CSV header:
+Each example has 412 frames and a three-level header:
 
 ```text
 scorer / bodyparts / coords
 ```
 
-and contain:
-
-```text
-x
-y
-likelihood
-```
-
-for the tracked body parts.
-
-The first column contains frame numbers from 0 through 411.
-
-## 3. Important: How to Import These Files
-
-### Step 1: Start the application
-
-Open Terminal:
-
-```bash
-cd ~/Downloads/Capstone-CS490
-```
-
-Activate your virtual environment:
-
-```bash
-source .venv/bin/activate
-```
-
-Then run:
-
-```bash
-python main.py
-```
-
-### Step 2: Click "Import CSV"
-
-The application opens a file picker.
-
-Navigate to:
-
-```text
-Capstone-CS490/data/
-```
-
-Select both:
-
-```text
-mumu7091_dorSwim1.1_2025Aug14.csv
-mumu7091_latSwim1.1_2025Aug14.csv
-```
-
-On macOS, you can hold **Command (⌘)** while clicking the second file to select both files.
-
-Then click **Open**.
-
-### Step 3: Confirm the import
-
-The current code prints a message in Terminal:
-
-```text
-Loaded 2 CSV file(s).
-```
-
-It also prints:
-
-```text
-Standardized variables:
-```
-
-followed by the variable names.
-
-Keep Terminal open while using the application because the current version reports most processing results there rather than displaying them inside the GUI.
-
-## 4. IMPORTANT CURRENT CODE LIMITATION
-
-Your current `import_csv()` function loads every selected CSV into:
-
-```python
-self.data
-```
-
-However, it currently extracts variables only from:
-
-```python
-self.data[0]
-```
-
-That means the **first CSV you select matters**.
-
-For these two files, the safest current order is:
-
-1. `mumu7091_dorSwim1.1_2025Aug14.csv`
-2. `mumu7091_latSwim1.1_2025Aug14.csv`
-
-The reason is that the current code extracts:
-
-```text
-TailTip
-TailBase
-SnoutTip
-MTP
-Ankle
-```
-
-The dorsal file has `TailTip`, `TailBase`, and `SnoutTip`, but does not contain `MTP` or `Ankle`.
-
-The lateral file contains all of those required points, including `MTP` and `Ankle`.
-
-Therefore, if your kinematics calculations need MTP and Ankle, the current implementation needs to be changed so that it combines information from the appropriate dorsal and lateral files instead of assuming everything is in `self.data[0]`.
-
-**Do not change the CSV files to solve this. The CSV structure is usable. The code's data-selection logic is what needs to be connected correctly.**
-
-## 5. What the Current Import Code Does
-
-When you click **Import CSV**, the code:
-
-1. Opens the file picker.
-2. Allows multiple CSV files to be selected.
-3. Stores their paths in `self.file_paths`.
-4. Reads each CSV using Pandas.
-5. Uses the three-row header:
-   ```python
-   header=[0, 1, 2]
-   ```
-6. Stores each DataFrame in:
-   ```python
-   self.data
-   ```
-7. Extracts standardized variables from the first DataFrame.
-8. Prints the imported variables to Terminal.
-
-The relevant code is:
-
-```python
-dataset = pd.read_csv(
-    file_path,
-    header=[0, 1, 2]
-)
-```
-
-## 6. Parameters to Enter
-
-The GUI currently has these fields:
-
-| Field | Purpose |
-|---|---|
-| FPS | Frames per second |
-| Latcal (m/pix) | Lateral calibration |
-| Dorscal (m/pix) | Dorsal calibration |
-| Poly 1 | Calibration polynomial parameter |
-| Poly 2 | Calibration polynomial parameter |
-| Poly 3 | Calibration polynomial parameter |
-| TD | Tail diameter |
-
-Enter the values provided by your project/research team.
-
-**Do not invent values for these fields.** The CSV files provide tracked coordinates, but they do not by themselves establish the correct FPS, calibration values, polynomial coefficients, or tail diameter.
-
-After entering them, click:
-
-```text
-Register Parameters
-```
-
-The values will be printed in Terminal.
-
-## 7. Current Kinematics Workflow
-
-The intended workflow is:
-
-```text
-CSV files
-   ↓
-Import CSV
-   ↓
-Extract tracked body points
-   ↓
-Preprocess/calibrate coordinates
-   ↓
-Detect peaks/troughs/cycles
-   ↓
-Calculate kinematic measurements
-   ↓
-Display/save results
-```
-
-Your current code has many of the individual calculation functions already written, but several are still marked TODO and are not yet connected to the imported CSV data.
-
-For example, the code currently has functions for:
-
-- Time
-- Tail frequency
-- Tail wavelength
-- Tail wave speed
-- Swimming velocity
-- Tail-tip amplitude
-- Tail-base amplitude
-- Tail lateral velocity
-- Relative tail velocity
-- Virtual mass
-- Tail thrust power
-- MTP frequency
-- MTP amplitude
-- MTP wavelength
-- Stroke length
-- Power-phase duration
-- Recovery-phase duration
-- Phase ratio
-- Hindfoot length
-- Hindfoot angle
-- Hindfoot angular velocity
-
-## 8. Current "Calculate Kinematics" Button
-
-The button exists in the GUI, but the complete workflow is **not finished yet**.
-
-The current function contains test calculations such as:
-
-```python
-test_time = self.calculate_time(250, 250)
-```
-
-and:
-
-```python
-test_mass = self.calculate_virtual_mass(0.00225)
-```
-
-The code also contains TODO sections for connecting the imported data to the calculations.
-
-Therefore, after importing the CSVs, do not expect the application to automatically produce the final research measurements yet.
-
-## 9. Important Coding Issue Before Using "Calculate Kinematics"
-
-The current button is connected with:
-
-```python
-self.calculate_button.clicked.connect(self.calculate_kinematics)
-```
-
-but the function is defined as:
-
-```python
-def calculate_kinematics(self, variables):
-```
-
-The button click does not provide `variables`, so clicking **Calculate Kinematics** in the current version can produce a missing-argument error.
-
-This needs to be changed when the team connects the calculation workflow.
-
-For example, the eventual design could use:
-
-```python
-def calculate_kinematics(self):
-    variables = self.extract_variables(...)
-    ...
-```
-
-or another team-approved data pipeline.
-
-Do not simply remove the `variables` parameter without deciding where the dorsal and lateral data should come from.
-
-## 10. First Test: Import Only
-
-Until the calculation pipeline is connected, use this test:
-
-```text
-1. Start main.py
-2. Click Import CSV
-3. Select both CSV files
-4. Click Open
-5. Look at Terminal
-6. Confirm:
-   Loaded 2 CSV file(s).
-```
-
-You should also see:
-
-```text
-Standardized variables:
-```
-
-with keys such as:
+Coordinates use `x`, `y`, and `likelihood` fields. The importer currently standardizes these variables when they exist in a dataset:
 
 ```text
 frame
-tail_tip_x
-tail_tip_y
-tail_base_x
-tail_base_y
-snout_x
-snout_y
-mtp_x
-mtp_y
-ankle_x
-ankle_y
+tail_tip_x, tail_tip_y
+tail_base_x, tail_base_y
+snout_x, snout_y
+mtp_x, mtp_y
+ankle_x, ankle_y
 ```
 
-Because the current code extracts from the first selected file, the MTP and Ankle values may be `None` when the dorsal CSV is first. This is expected from the current implementation and is one reason the two-view data pipeline still needs to be connected.
+Missing body points are stored as `None` and omitted from the variable selector. Unlike the previous implementation, the current code extracts variables from **every** selected CSV; file-selection order no longer determines which dataset is available in the GUI.
 
-## 11. Recommended Next Code Change
+## Setup
 
-For these specific CSVs, the next development task should be:
+Python 3.10 or newer is recommended.
 
-```text
-Dorsal CSV
-    ↓
-Snout / body / tail coordinates
-    ↓
-Dorsal calibration
-    ↓
-Dorsal kinematics
+1. Clone the repository and enter it:
 
-Lateral CSV
-    ↓
-Snout / tail / MTP / Ankle coordinates
-    ↓
-Lateral calibration
-    ↓
-Hindfoot/MTP kinematics
+   ```bash
+   git clone <repository-url>
+   cd Capstone-CS490
+   ```
 
-          ↓
-    Combine results
-          ↓
-    Final metrics
-```
+2. Create and activate a virtual environment:
 
-The two files should be treated as **separate datasets from the two camera views**, not as two interchangeable copies of the same data.
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   ```
 
-## 12. Git
+   On Windows PowerShell:
 
-Do not commit the virtual environment:
+   ```powershell
+   py -m venv .venv
+   .venv\Scripts\Activate.ps1
+   ```
 
-```text
-.venv/
-```
+3. Resolve the merge-conflict markers currently present in `requirements.txt`, retaining the packages the application needs:
 
-Your `.gitignore` should contain:
+   ```text
+   PySide6
+   pandas
+   numpy
+   scipy
+   matplotlib
+   ```
 
-```text
-.venv/
-__pycache__/
-*.pyc
-.DS_Store
-```
+4. Install dependencies:
 
-A recommended repository is:
+   ```bash
+   python -m pip install -r requirements.txt
+   ```
 
-```text
-Capstone-CS490/
-├── main.py
-├── README.md
-├── requirements.txt
-├── .gitignore
-└── data/
-    ├── mumu7091_dorSwim1.1_2025Aug14.csv
-    └── mumu7091_latSwim1.1_2025Aug14.csv
-```
+5. Start MiceLab:
 
-Whether the actual CSV data should be committed to Git depends on your team's project/data-sharing rules. If the data should not be distributed, keep `data/` out of Git and have teammates obtain the CSVs separately.
+   ```bash
+   python main.py
+   ```
 
-## 13. Quick Start for Your Current Computer
+The dependency file must be repaired before a clean installation will succeed. This README documents the blocker but intentionally does not silently change application dependencies.
 
-If your project is in Downloads:
+## Using the current prototype
 
-```bash
-cd ~/Downloads/Capstone-CS490
-```
+1. Run `python main.py` from the repository root.
+2. Select **Import CSV Files** and choose the dorsal and lateral CSVs. Multi-select is supported.
+3. Confirm that the file count changes and that both filenames appear in the dataset selector.
+4. Enter the research-team-provided values for FPS, lateral calibration, dorsal calibration, polynomial parameters, and tail diameter, then select **Register Parameters**.
+5. Select a dataset and inspect the available standardized variables.
+6. Select **Calculate Kinematics** only as a connectivity check. It currently displays fixed test calculations; it does not analyze the selected data.
 
-Create the environment once:
+Keep the terminal open while using the prototype. Parameter confirmation and placeholder actions are still reported there.
 
-```bash
-python3 -m venv .venv
-```
+Do not invent calibration values. FPS, lateral and dorsal meters-per-pixel calibration, polynomial settings, and tail diameter must come from the experimental protocol or project manager.
 
-Activate it:
+## Kinematic functions currently available
+
+`kinematics.py` contains functions for:
+
+- elapsed time, swimming velocity, and tail-beat frequency;
+- tail wavelength, wave speed, tip/base amplitude, lateral velocity, and relative velocity;
+- virtual mass and tail-thrust power;
+- MTP frequency, amplitude, wavelength, stroke length, power/recovery duration, and phase ratio;
+- hindfoot length, angle, and angular velocity.
+
+These functions are building blocks, not a completed analysis pipeline. Their scientific formulas, units, array alignment, peak/trough definitions, and expected inputs still need validation against the manager's reference analysis before results can be considered reliable.
+
+## Objectives required for manager acceptance
+
+### Priority 0 — make the project reproducible
+
+- Resolve the merge conflict in `requirements.txt`, pin compatible versions, and verify setup on a clean environment.
+- Remove committed generated files such as `__pycache__`, and decide whether duplicate/root-level or potentially sensitive research CSVs belong in version control.
+- Add a documented command for automated tests and a small non-sensitive fixture dataset.
+
+**Done when:** a new developer can clone the repository, install dependencies, run tests, and open the application without manual file repair.
+
+### Priority 1 — define and validate the data contract
+
+- Identify dorsal and lateral files explicitly instead of relying only on filenames or selection order.
+- Validate the three-row CSV schema, required body points, equal/compatible frame ranges, numeric values, and likelihood fields.
+- Surface missing columns and malformed inputs as actionable GUI messages.
+- Preserve each camera view separately and map it to the correct calibration.
+
+**Done when:** valid paired files load predictably, and invalid or incomplete inputs fail safely with a clear explanation.
+
+### Priority 2 — validate calibration parameters
+
+- Convert inputs to numeric values and reject empty, non-finite, zero, or out-of-range values as appropriate.
+- Confirm the units and meaning of FPS, `latcal`, `dorscal`, polynomial coefficients, and tail diameter with the manager.
+- Store parameters with the analysis session and apply lateral versus dorsal calibration consistently.
+
+**Done when:** calculations cannot start with invalid parameters and every output has documented units.
+
+### Priority 3 — implement the processing workflow
+
+- Add raw-data plots for the selected variable.
+- Use tracking likelihood and/or manager-approved criteria to flag outliers and allow good-region/bad-point selection.
+- Implement the required spline gap filling.
+- Implement unit conversion, axis orientation, polynomial detrending, mean centering/standardization, and smoothing.
+- Keep raw data immutable and store each processed stage so users can review or undo decisions.
+
+**Done when:** the GUI reproduces the manager's raw, filtered, gap-filled, converted/detrended, and standardized/smoothed views for both cameras.
+
+### Priority 4 — connect and verify kinematics
+
+- Build time arrays from frame number and FPS.
+- Detect peaks, troughs, strokes, and phase boundaries with documented rules.
+- Align MTP data with the shorter hindfoot angular-velocity series before overlaying them.
+- Connect processed dorsal and lateral variables to the existing kinematic functions.
+- Validate every formula against hand-calculated examples or an approved reference implementation, including edge cases such as missing data, too few cycles, and divide-by-zero conditions.
+
+**Done when:** the same approved input and parameters produce repeatable, scientifically reviewed tail, swimming, MTP, and hindfoot metrics.
+
+### Priority 5 — produce the manager's outputs
+
+- Plot hindfoot angular velocity, the aligned MTP/angular-velocity overlay, detected peaks and valleys, and a final processed-data overview.
+- Export cleaned and filtered variables to CSV with frame/time columns and units.
+- Export the final kinematic values as a clear summary table with trial identifiers, parameters, units, and quality-control notes.
+- Add save dialogs, overwrite confirmation, success/error feedback, and deterministic filenames.
+
+**Done when:** one complete GUI run produces the cleaned-data CSV, final kinematics table, and requested diagnostic figures without relying on terminal output.
+
+### Priority 6 — quality and release readiness
+
+- Add unit tests for extraction, calibration, processing, and every kinematic formula; add an end-to-end test using a small fixture.
+- Add application-state rules so steps run only in order and buttons are disabled until prerequisites are satisfied.
+- Replace console-only messages with GUI feedback and retain useful logging for diagnosis.
+- Profile representative trials, document supported data sizes, and test on the operating systems used by the team.
+- Obtain manager sign-off on plots, numerical tolerances, output columns, terminology, and units.
+
+**Done when:** automated tests pass, the full workflow is repeatable, failures are recoverable, and the manager approves the outputs against a reference trial.
+
+## Recommended delivery sequence
+
+Work should proceed in priority order. The critical path is dependency repair → input validation → parameter validation → processing → kinematic integration → plotting/export → scientific acceptance testing. Plot polish should not precede verification of the processed signals and formulas that feed those plots.
+
+## Known limitations
+
+- `requirements.txt` contains unresolved Git conflict markers.
+- Parameter fields accept arbitrary text and are not used by the current calculation button.
+- Processing button handlers only print placeholder messages.
+- Gap filling, detrending, and smoothing functions currently return their inputs unchanged.
+- Plotting functions contain only stubs.
+- The calculation button uses hard-coded test values rather than imported data.
+- Export buttons do not write files.
+- There are no automated tests or documented scientific acceptance tolerances.
+
+## Troubleshooting
+
+If Python reports a missing module, activate the virtual environment and reinstall dependencies after repairing `requirements.txt`:
 
 ```bash
 source .venv/bin/activate
-```
-
-Install dependencies:
-
-```bash
 python -m pip install -r requirements.txt
 ```
 
-Start the application:
-
-```bash
-python main.py
-```
-
-Then:
-
-```text
-Import CSV
-    ↓
-Navigate to data/
-    ↓
-Select:
-  mumu7091_dorSwim1.1_2025Aug14.csv
-  mumu7091_latSwim1.1_2025Aug14.csv
-    ↓
-Open
-    ↓
-Check Terminal for "Loaded 2 CSV file(s)."
-```
-
-## 14. Troubleshooting
-
-### `ModuleNotFoundError: No module named 'PySide6'`
-
-Make sure the virtual environment is activated:
-
-```bash
-source .venv/bin/activate
-```
-
-Then:
-
-```bash
-python -m pip install -r requirements.txt
-```
-
-Verify:
-
-```bash
-python -c "import PySide6; print(PySide6.__version__)"
-```
-
-### `ModuleNotFoundError: No module named 'pandas'`
-
-Run:
-
-```bash
-python -m pip install -r requirements.txt
-```
-
-### `ModuleNotFoundError: No module named 'numpy'`
-
-Run:
-
-```bash
-python -m pip install -r requirements.txt
-```
-
-### Check which Python is being used
-
-Run:
+Verify the interpreter and installer refer to the same environment:
 
 ```bash
 which python
@@ -553,41 +250,4 @@ python --version
 python -m pip --version
 ```
 
-When the virtual environment is active, `which python` should point inside:
-
-```text
-Capstone-CS490/.venv/
-```
-
-### Do not use this
-
-Do not run:
-
-```bash
-python3 install
-```
-
-`install` is not the Python dependency installer.
-
-Use:
-
-```bash
-python -m pip install -r requirements.txt
-```
-
-## 15. Updating Dependencies
-
-If a new Python package is added:
-
-```bash
-python -m pip install package-name
-```
-
-Then update the dependency file:
-
-```bash
-python -m pip freeze > requirements.txt
-```
-
-Review the resulting file before committing it.
-
+If a body point is missing from the variable selector, verify that the selected CSV contains that body part in its second header row. Dorsal and lateral files do not contain identical tracked points.
