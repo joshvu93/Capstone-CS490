@@ -10,6 +10,12 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from data import (
+    load_csv_files,
+    extract_variables,
+)
+import kinematics
+
 from layout import (
     create_import_section,
     create_parameter_section,
@@ -18,14 +24,6 @@ from layout import (
     create_kinematics_section,
     create_export_section,
 )
-
-from data import (
-    load_csv_files,
-    extract_variables,
-)
-
-import kinematics
-
 
 # GUI
 
