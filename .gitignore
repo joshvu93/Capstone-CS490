@@ -1,0 +1,20 @@
+# Python virtual environments
+micelab-env/
+venv/
+.venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# macOS
+.DS_Store
+
+# VS Code
+.vscode/
+
+# Python build files
+build/
+dist/
+*.egg-info/

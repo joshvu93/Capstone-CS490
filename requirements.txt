@@ -1,3 +1,8 @@
 PySide6
 pandas
 numpy
+<<<<<<< HEAD
+scipy
+matplotlib
+=======
+>>>>>>> 14eb70b661128979bd57d5d5358bada4ec6d66aa

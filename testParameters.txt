@@ -1,0 +1,8 @@
+FPS:              250
+Latcal (m/pix):   0.00026895
+Dorscal (m/pix):  0.00027257
+Poly 1:           4
+Poly 2:           3
+Poly 3:           2
+TD (m):           0.00225
+
