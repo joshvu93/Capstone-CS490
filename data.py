@@ -1,218 +1,36 @@
-# Imports
+"""Loading helpers for DeepLabCut three-row-header CSV exports."""
 
+from pathlib import Path
 import pandas as pd
 
 
-# ================================================
-# Load CSV files
-# ================================================
-
-def load_csv_files(
-    file_paths
-):
-
-
+def load_csv_files(file_paths):
+    """Load one or more DeepLabCut CSV files while preserving their headers."""
     datasets = []
-
-
     for file_path in file_paths:
-
-
-        dataset = pd.read_csv(
-            file_path,
-            header=[0, 1, 2]
-        )
-
-
-        datasets.append(
-            dataset
-        )
-
-
+        try:
+            frame = pd.read_csv(file_path, header=[0, 1, 2])
+        except (OSError, pd.errors.ParserError, UnicodeDecodeError) as exc:
+            raise ValueError(f"Could not read {file_path}: {exc}") from exc
+        if frame.empty or len(frame.columns) < 2:
+            raise ValueError(f"{file_path} does not contain tracking coordinates.")
+        datasets.append(frame)
     return datasets
 
 
-# ================================================
-# Extract one coordinate
-# ================================================
-
-def extract_coordinate(
-    dataset,
-    bodypart,
-    coordinate
-):
-
-
-    # Search CSV headers
-
-    for column in dataset.columns:
-
-
-        # Ensure column has expected
-        # multi-level header
-
-        if len(column) < 3:
-
+def extract_variables(dataset):
+    """Return frame and bodypart coordinate/likelihood arrays from DLC data."""
+    if not isinstance(dataset.columns, pd.MultiIndex) or dataset.columns.nlevels < 3:
+        raise ValueError("Expected a DeepLabCut CSV with three header rows.")
+    variables = {"frame": pd.to_numeric(dataset.iloc[:, 0], errors="coerce").to_numpy()}
+    for column in dataset.columns[1:]:
+        _, bodypart, coordinate = column[:3]
+        if not bodypart or not coordinate:
             continue
-
-
-        # Check bodypart and coordinate
-
-        if (
-            column[1] == bodypart
-            and
-            column[2] == coordinate
-        ):
-
-
-            values = dataset[
-                column
-            ]
-
-
-            # Convert to numeric array
-
-            return pd.to_numeric(
-                values,
-                errors="coerce"
-            ).to_numpy()
-
-
-    return None
-
-
-# ================================================
-# Extract standardized variables
-# ================================================
-
-def extract_variables(
-    dataset
-):
-
-
-    variables = {}
-
-
-    # ============================================
-    # Frame
-    # ============================================
-
-    variables["frame"] = (
-        pd.to_numeric(
-            dataset.iloc[:, 0],
-            errors="coerce"
-        ).to_numpy()
-    )
-
-
-    # ============================================
-    # Tail Tip
-    # ============================================
-
-    variables["tail_tip_x"] = (
-        extract_coordinate(
-            dataset,
-            "TailTip",
-            "x"
-        )
-    )
-
-
-    variables["tail_tip_y"] = (
-        extract_coordinate(
-            dataset,
-            "TailTip",
-            "y"
-        )
-    )
-
-
-    # ============================================
-    # Tail Base
-    # ============================================
-
-    variables["tail_base_x"] = (
-        extract_coordinate(
-            dataset,
-            "TailBase",
-            "x"
-        )
-    )
-
-
-    variables["tail_base_y"] = (
-        extract_coordinate(
-            dataset,
-            "TailBase",
-            "y"
-        )
-    )
-
-
-    # ============================================
-    # Snout
-    # ============================================
-
-    variables["snout_x"] = (
-        extract_coordinate(
-            dataset,
-            "SnoutTip",
-            "x"
-        )
-    )
-
-
-    variables["snout_y"] = (
-        extract_coordinate(
-            dataset,
-            "SnoutTip",
-            "y"
-        )
-    )
-
-
-    # ============================================
-    # MTP
-    # ============================================
-
-    variables["mtp_x"] = (
-        extract_coordinate(
-            dataset,
-            "MTP",
-            "x"
-        )
-    )
-
-
-    variables["mtp_y"] = (
-        extract_coordinate(
-            dataset,
-            "MTP",
-            "y"
-        )
-    )
-
-
-    # ============================================
-    # Ankle
-    # ============================================
-
-    variables["ankle_x"] = (
-        extract_coordinate(
-            dataset,
-            "Ankle",
-            "x"
-        )
-    )
-
-
-    variables["ankle_y"] = (
-        extract_coordinate(
-            dataset,
-            "Ankle",
-            "y"
-        )
-    )
-
-
+        key = f"{bodypart}_{coordinate.lower()}"
+        variables[key] = pd.to_numeric(dataset[column], errors="coerce").to_numpy()
     return variables
+
+
+def extract_coordinate(dataset, bodypart, coordinate):
+    return extract_variables(dataset).get(f"{bodypart}_{coordinate.lower()}")

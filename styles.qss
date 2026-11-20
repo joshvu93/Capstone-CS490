@@ -132,3 +132,22 @@ QPushButton:hover {
 QPushButton:pressed {
     background-color: #cccccc;
 }
+
+/* Calibration parameter input boxes */
+QSpinBox,
+QDoubleSpinBox {
+    background-color: #FFFFFF;
+    color: #1F2937;
+    border: 1px solid #CBD5E1;
+    border-radius: 6px;
+    padding: 6px 8px;
+    min-height: 28px;
+    selection-background-color: #2563EB;
+    selection-color: #FFFFFF;
+}
+
+/* Highlight the selected input */
+QSpinBox:focus,
+QDoubleSpinBox:focus {
+    border: 1px solid #2563EB;
+}
