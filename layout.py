@@ -203,10 +203,6 @@ def create_parameter_section():
     poly2_input.setRange(0, 20)
     poly2_input.setValue(3)
 
-    poly2_input = QLineEdit()
-
-
-
     layout.addWidget(
         poly2_label,
         4,
@@ -231,8 +227,6 @@ def create_parameter_section():
     poly3_input.setRange(0, 20)
     poly3_input.setValue(2)
 
-    poly3_input = QLineEdit()
-
 
     layout.addWidget(
         poly3_label,
@@ -254,8 +248,6 @@ def create_parameter_section():
     td_label = QLabel(
         "TD:"
     )
-
-    td_input = QLineEdit()
 
     td_input = QDoubleSpinBox()
     td_input.setDecimals(5)
@@ -404,80 +396,97 @@ def create_selection_section():
 # ================================================
 
 def create_processing_section():
-
-
     section = QGroupBox(
         "4. Process Data"
     )
-
-
     layout = QGridLayout(
         section
     )
+    #=========================================
+    #Filter & crop limits (Blank = no limit )
+    #==========================================
 
+    t_min_input = QLineEdit()
+    t_max_input = QLineEdit()
+    v_min_input = QLineEdit()
+    v_max_input = QLineEdit()
 
-    filter_button = QPushButton(
+    t_min_input.setPlaceholderText("start")
+    t_max_input.setPlaceholderText("end")
+    v_min_input.setPlaceholderText("min")
+    v_max_input.setPlaceholderText("max")
+
+    layout.addWidget(QLabel("Time min (s):"), 0,0)
+    layout.addWidget(t_min_input,0,1)
+    layout.addWidget(QLabel("Time max (s):"),0,2)
+    layout.addWidget(t_max_input, 0,3)
+
+    layout.addWidget(QLabel("Value min (pix):"),1,0)
+    layout.addWidget(v_min_input,1,1)
+    layout.addWidget(QLabel("Value max (pix):"),1,2)
+    layout.addWidget(v_max_input,1,3)
+
+    #=====================================================
+    #buttons
+    #=====================================================
+
+    filter_button =  QPushButton(
         "Filter Data"
     )
 
+    remove_points_button = QPushButton (
+        "Remove Bad Points (click graph)"
+    )
 
+    remove_points_button.setCheckable(
+        True
+    )
+
+    reset_button = QPushButton (
+        "Reset Data"
+    )
     fill_gap_button = QPushButton(
         "Fill Gaps"
     )
-
-
     convert_button = QPushButton(
-        "Convert & Detrend"
+        "Convert and Detrend"
     )
-
-
     smooth_button = QPushButton(
-        "Standardize & Smooth"
+        " Standarized and smooth"
     )
+    layout.addWidget(filter_button, 2,0,1,2)
+    layout.addWidget(remove_points_button,2,2,1,2)
 
+    layout.addWidget(reset_button, 3,0,1,2)
+    layout.addWidget(fill_gap_button, 3,2,1,2)
 
-    layout.addWidget(
-        filter_button,
-        0,
-        0
-    )
-
-    layout.addWidget(
-        fill_gap_button,
-        0,
-        1
-    )
-
-    layout.addWidget(
-        convert_button,
-        1,
-        0
-    )
-
-    layout.addWidget(
-        smooth_button,
-        1,
-        1
-    )
-
+    layout.addWidget(convert_button, 4,0,1,2)
+    layout.addWidget(smooth_button, 4,2,1,2)
 
     return {
         "section":
-            section,
-
+        section,
+        "t_min_input":
+        t_min_input,
+        "t_max_input":
+        t_max_input,
+        "v_min_input":
+        v_min_input,
+        "v_max_input":
+        v_max_input,
         "filter_button":
-            filter_button,
-
+        filter_button,
+        "remove_points_button":
+        remove_points_button,
+        "reset_button":
+        reset_button,
         "fill_gap_button":
-            fill_gap_button,
-
+        fill_gap_button,
         "convert_button":
-            convert_button,
-
+        convert_button,
         "smooth_button":
-            smooth_button
+        smooth_button
     }
-
 
 # ================================================
 # Kinematics Section

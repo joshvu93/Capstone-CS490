@@ -1,5 +1,5 @@
 # Imports
-
+import numpy as np
 import pandas as pd
 
 
@@ -78,7 +78,7 @@ def extract_coordinate(
             ).to_numpy()
 
 
-    return None
+    return np.full(len(dataset), np.nan)
 
 
 # ================================================
