@@ -7,11 +7,11 @@ from matplotlib.backends.backend_qtagg import NavigationToolbar2QT
 
 class RawDataGraph(FigureCanvasQTAgg):
     def __init__(self, parent=None):
-        self.figure = Figure(figsize=(10, 5), dpi=100)
+        self.figure = Figure(figsize=(10, 5), dpi=100, layout="tight")
         self.axes = self.figure.add_subplot(111)
         super().__init__(self.figure)
         self.setParent(parent)
-        self.setMinimumHeight(350)
+        self.setMinimumHeight(200)
         self.show_message("Import CSV files to display data")
 
     def show_message(self, message):
@@ -36,12 +36,14 @@ class RawDataGraph(FigureCanvasQTAgg):
             x_label="Frame",
             keep_view =False,
             removed_x=None, 
-            removed_y=None 
+            removed_y=None,
+            title=None,
+            subtitle=None
             ):
         x = np.asarray(x_values, dtype=float)
         y = np.asarray(values, dtype=float)
         if x.shape != y.shape:
-            self.show_message("X and coordinate lenghts differ")
+            self.show_message("X and coordinate lengths differ")
             return 
         
         valid = np.isfinite(x) & np.isfinite(y)
@@ -70,13 +72,19 @@ class RawDataGraph(FigureCanvasQTAgg):
                 label="Removed"
             )
             self.axes.legend(loc="upper left")
-        self.axes.set_title(f"{dataset}-{variable}")
+        self.axes.set_title(title or variable, fontsize=13, fontweight="bold", pad=20)
+        if subtitle:
+            self.axes.text(
+                0.5, 1.02, subtitle,
+                ha="center", va="bottom", fontsize=9, color="#555555",
+                transform=self.axes.transAxes
+            )
+        self.axes.grid(True, color="#dddddd", linewidth=0.8)
         self.axes.set_xlabel(x_label)
         self.axes.set_ylabel(f"{variable} (pixels)")
         if old_limits is not None :
             self.axes.set_xlim(old_limits[0])
             self.axes.set_ylim(old_limits[1])
-        self.figure.tight_layout()
         self.draw_idle()
 
     def nearest_point(self, event, max_pixels=20 ):

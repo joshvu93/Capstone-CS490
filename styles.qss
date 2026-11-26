@@ -28,7 +28,7 @@ QScrollArea QWidget {
 QGroupBox {
     color: #222222;
 
-    font-size: 15px;
+    font-size: 13px;
     font-weight: bold;
 
     background-color: white;
@@ -36,13 +36,13 @@ QGroupBox {
     border: 1px solid #cccccc;
     border-radius: 6px;
 
-    margin-top: 18px;
-    padding: 15px;
+    margin-top: 16px;
+    padding: 4px;
 }
 
 
 QGroupBox::title {
-    color: #cccccc;
+    color: #222222;
 
     subcontrol-origin: margin;
     subcontrol-position: top left;
@@ -70,19 +70,14 @@ QLabel {
    ============================================= */
 
 QLineEdit {
-    color: #cccccc;
+    color: #222222;
 
     background-color: white;
 
-    padding: 6px;
+    padding: 3px;
 
     border: 1px solid #bbbbbb;
     border-radius: 4px;
-}
-
-
-QLineEdit::placeholder {
-    color: #888888;
 }
 
 
@@ -95,7 +90,7 @@ QComboBox {
 
     background-color: white;
 
-    padding: 6px;
+    padding: 3px;
 
     border: 1px solid #bbbbbb;
     border-radius: 4px;
@@ -117,7 +112,7 @@ QPushButton {
 
     background-color: #eeeeee;
 
-    padding: 8px 14px;
+    padding: 4px 10px;
 
     border: 1px solid #aaaaaa;
     border-radius: 5px;
@@ -133,21 +128,70 @@ QPushButton:pressed {
     background-color: #cccccc;
 }
 
-/* Calibration parameter input boxes */
-QSpinBox,
-QDoubleSpinBox {
-    background-color: #FFFFFF;
-    color: #1F2937;
-    border: 1px solid #CBD5E1;
-    border-radius: 6px;
-    padding: 6px 8px;
-    min-height: 28px;
-    selection-background-color: #2563EB;
-    selection-color: #FFFFFF;
+
+/* toggle buttons that are switched on */
+QPushButton:checked {
+    background-color: #dde7ef;
+    border: 1px solid #376A92;
 }
 
-/* Highlight the selected input */
-QSpinBox:focus,
-QDoubleSpinBox:focus {
-    border: 1px solid #2563EB;
+QPushButton:disabled,
+QComboBox:disabled,
+QLineEdit:disabled {
+    color: #999999;
+    border-color: #cccccc;
+}
+
+QPushButton#primary {
+    color: white;
+    background-color: #376A92;
+    border-color: #376A92;
+}
+
+QPushButton#primary:hover {
+    background-color: #2F5B7E;
+}
+
+QPushButton#primary:pressed {
+    background-color: #264A66;
+}
+
+QPushButton#primary:disabled {
+    color: #999999;
+    background-color: #e4e4e4;
+    border-color: #cccccc;
+}
+
+/* collapsible panels have no title */
+QGroupBox#panel {
+    margin-top: 0;
+}
+
+QLabel#file_status {
+    background-color: #f0f0f0;
+    border-radius: 4px;
+    padding: 3px 6px;
+}
+
+/* focused inputs (spin boxes stay unstyled so their arrows work) */
+QLineEdit:focus,
+QComboBox:focus {
+    border: 1px solid #376A92;
+}
+
+QLineEdit,
+QComboBox QAbstractItemView {
+    selection-background-color: #376A92;
+    selection-color: white;
+}
+
+/* loaded files and registered calibration */
+QLabel#file_status[success="true"],
+QLabel#parameter_status[success="true"] {
+    color: #427653;
+}
+
+/* warning and error dialogs */
+QMessageBox QLabel {
+    color: #BC4141;
 }

@@ -5,10 +5,12 @@ from PySide6.QtWidgets import (
     QComboBox,
     QGridLayout,
     QGroupBox,
+    QHBoxLayout,
     QLabel,
     QLineEdit,
     QPushButton,
     QVBoxLayout,
+    QWidget,
     QSpinBox,
     QDoubleSpinBox,
 )
@@ -24,27 +26,31 @@ def create_import_section():
 
     section = QGroupBox("1. Input Data")
     layout = QVBoxLayout(section)
+    layout.setSpacing(4)
 
     # Dorsal data
-    dorsal_label = QLabel("Dorsal Data (Top View)")
+    dorsal_label = QLabel("Dorsal (Top)")
     dorsal_button = QPushButton("Choose Dorsal CSV")
     dorsal_status = QLabel("No dorsal file selected")
 
     # Lateral data
-    lateral_label = QLabel("Lateral Data (Side View)")
+    lateral_label = QLabel("Lateral (Side)")
     lateral_button = QPushButton("Choose Lateral CSV")
     lateral_status = QLabel("No lateral file selected")
 
+    dorsal_status.setObjectName("file_status")
+    lateral_status.setObjectName("file_status")
+
     # Add widgets to layout
-    layout.addWidget(dorsal_label)
-    layout.addWidget(dorsal_button)
-    layout.addWidget(dorsal_status)
-
-    layout.addSpacing(15)
-
-    layout.addWidget(lateral_label)
-    layout.addWidget(lateral_button)
-    layout.addWidget(lateral_status)
+    for label, button, status in (
+        (dorsal_label, dorsal_button, dorsal_status),
+        (lateral_label, lateral_button, lateral_status),
+    ):
+        row = QHBoxLayout()
+        row.addWidget(label)
+        row.addWidget(button, stretch=1)
+        layout.addLayout(row)
+        layout.addWidget(status)
 
     return {
         "section": section,
@@ -64,7 +70,7 @@ def create_parameter_section():
 
 
     section = QGroupBox(
-        "2. Enter Calibration Parameters"
+        "2. Calibration Parameters"
     )
 
 
@@ -74,11 +80,11 @@ def create_parameter_section():
 
 
     layout.setHorizontalSpacing(
-        10
+        8
     )
 
     layout.setVerticalSpacing(
-        10
+        6
     )
 
 
@@ -246,7 +252,7 @@ def create_parameter_section():
     # ============================================
 
     td_label = QLabel(
-        "TD:"
+        "Tail Diameter (m):"
     )
 
     td_input = QDoubleSpinBox()
@@ -288,9 +294,32 @@ def create_parameter_section():
     )
 
 
+    parameter_button.setObjectName("primary")
+
+    # Tooltips
+    for label, field, text in (
+        (fps_label, fps_input, "Camera frame rate (frames per second)"),
+        (latcal_label, latcal_input, "Lateral (side view) calibration, meters per pixel"),
+        (dorscal_label, dorscal_input, "Dorsal (top view) calibration, meters per pixel"),
+        (poly1_label, poly1_input, "Polynomial order 1, for detrending (not yet available)"),
+        (poly2_label, poly2_input, "Polynomial order 2, for detrending (not yet available)"),
+        (poly3_label, poly3_input, "Polynomial order 3, for detrending (not yet available)"),
+        (td_label, td_input, "Mouse tail diameter in meters"),
+    ):
+        label.setToolTip(text)
+        field.setToolTip(text)
+
+    parameter_status = QLabel("Parameters not registered")
+    parameter_status.setObjectName("parameter_status")
+    layout.addWidget(parameter_status, 8, 0, 1, 2, Qt.AlignmentFlag.AlignCenter)
+
+
     return {
         "section":
             section,
+
+        "parameter_status":
+            parameter_status,
 
         "fps_input":
             fps_input,
@@ -325,14 +354,13 @@ def create_parameter_section():
 def create_selection_section():
 
 
-    section = QGroupBox(
-        "3. Select Dataset and Variable"
-    )
+    section = QWidget()
 
 
     layout = QGridLayout(
         section
     )
+    layout.setContentsMargins(0, 0, 0, 0)
 
 
     # Dataset
@@ -353,30 +381,19 @@ def create_selection_section():
     variable_selector = QComboBox()
 
 
-    layout.addWidget(
-        dataset_label,
-        0,
-        0
-    )
+    layout.addWidget(dataset_label, 0, 0)
+    layout.addWidget(dataset_selector, 0, 1)
+    layout.addWidget(variable_label, 0, 2)
+    layout.addWidget(variable_selector, 0, 3)
 
-    layout.addWidget(
-        dataset_selector,
-        0,
-        1
-    )
+    raw_view_button = QPushButton("Show Raw")
+    raw_view_button.setCheckable(True)
+    raw_view_button.setToolTip("View the imported data (read only)")
+    layout.addWidget(raw_view_button, 0, 4)
 
-
-    layout.addWidget(
-        variable_label,
-        1,
-        0
-    )
-
-    layout.addWidget(
-        variable_selector,
-        1,
-        1
-    )
+    # let the dropdowns take the extra width
+    layout.setColumnStretch(1, 2)
+    layout.setColumnStretch(3, 1)
 
 
     return {
@@ -387,7 +404,10 @@ def create_selection_section():
             dataset_selector,
 
         "variable_selector":
-            variable_selector
+            variable_selector,
+
+        "raw_view_button":
+            raw_view_button
     }
 
 
@@ -396,14 +416,15 @@ def create_selection_section():
 # ================================================
 
 def create_processing_section():
-    section = QGroupBox(
-        "4. Process Data"
-    )
-    layout = QGridLayout(
-        section
-    )
+    section = QGroupBox("3. Data Cleaning")
+    layout = QGridLayout(section)
+
+    preparation_group = QGroupBox()
+    preparation_group.setObjectName("panel")
+    preparation_layout = QHBoxLayout(preparation_group)
+
     #=========================================
-    #Filter & crop limits (Blank = no limit )
+    #Filter & crop limits (blank = no limit)
     #==========================================
 
     t_min_input = QLineEdit()
@@ -431,8 +452,9 @@ def create_processing_section():
     #=====================================================
 
     filter_button =  QPushButton(
-        "Filter Data"
+        "Apply Filter"
     )
+    filter_button.setObjectName("primary")
 
     remove_points_button = QPushButton (
         "Remove Bad Points (click graph)"
@@ -452,20 +474,25 @@ def create_processing_section():
         "Convert and Detrend"
     )
     smooth_button = QPushButton(
-        " Standarized and smooth"
+        "Standardize and Smooth"
     )
-    layout.addWidget(filter_button, 2,0,1,2)
-    layout.addWidget(remove_points_button,2,2,1,2)
+    button_layout = QHBoxLayout()
+    button_layout.addWidget(filter_button)
+    button_layout.addWidget(remove_points_button)
+    button_layout.addWidget(reset_button)
+    layout.addLayout(button_layout, 2, 0, 1, 4)
 
-    layout.addWidget(reset_button, 3,0,1,2)
-    layout.addWidget(fill_gap_button, 3,2,1,2)
-
-    layout.addWidget(convert_button, 4,0,1,2)
-    layout.addWidget(smooth_button, 4,2,1,2)
+    # these steps are not implemented yet
+    for button in (fill_gap_button, convert_button, smooth_button):
+        button.setEnabled(False)
+        button.setToolTip("Not yet available")
+        preparation_layout.addWidget(button)
 
     return {
         "section":
         section,
+        "preparation_group":
+        preparation_group,
         "t_min_input":
         t_min_input,
         "t_max_input":
@@ -495,39 +522,34 @@ def create_processing_section():
 def create_kinematics_section():
 
 
-    section = QGroupBox(
-        "5. Calculate Kinematics"
-    )
+    section = QGroupBox()
+    section.setObjectName("panel")
 
 
-    layout = QVBoxLayout(
+    layout = QHBoxLayout(
         section
     )
 
 
     calculate_button = QPushButton(
-        "Calculate Kinematics"
+        "Run Kinematics Test"
     )
 
 
     results_label = QLabel(
-        "No kinematic results calculated."
+        "Uses fixed test values, not your data."
     )
 
 
-    results_label.setWordWrap(
-        True
+
+    layout.addWidget(
+        calculate_button
     )
 
 
     layout.addWidget(
-        calculate_button,
-        alignment=Qt.AlignmentFlag.AlignCenter
-    )
-
-
-    layout.addWidget(
-        results_label
+        results_label,
+        stretch=1
     )
 
 
@@ -550,9 +572,8 @@ def create_kinematics_section():
 def create_export_section():
 
 
-    section = QGroupBox(
-        "6. Export"
-    )
+    section = QGroupBox()
+    section.setObjectName("panel")
 
 
     layout = QGridLayout(
@@ -581,6 +602,11 @@ def create_export_section():
         0,
         1
     )
+
+
+    for button in (export_data_button, export_results_button):
+        button.setEnabled(False)
+        button.setToolTip("Not yet available")
 
 
     return {
